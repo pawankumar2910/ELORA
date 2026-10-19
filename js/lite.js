@@ -44,6 +44,9 @@
     });
     deps.appendChild(grid); main.appendChild(deps);
 
+    const crewPanel = $('#crew');
+    if (crewPanel) { const cw = document.createElement('section'); cw.className = 'lt-crew'; crewPanel.removeAttribute('aria-hidden'); crewPanel.classList.add('on'); cw.appendChild(crewPanel); main.appendChild(cw); }
+
     const cs = document.createElement('section'); cs.className = 'lt-contact'; cs.id = 'contact-lite';
     const panel = $('#contact'); if (panel) { panel.removeAttribute('aria-hidden'); cs.appendChild(panel); }
     main.appendChild(cs);
@@ -60,7 +63,7 @@
     /* a quiet fade-in as sections arrive */
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -8% 0px' });
-      $$('.lt-card, .lt-contact, .lt-h').forEach(n => { n.classList.add('rv'); io.observe(n); });
+      $$('.lt-card, .lt-crew, .lt-contact, .lt-h').forEach(n => { n.classList.add('rv'); io.observe(n); });
     }
     /* the loader has nothing left to wait for */
     if (window.ELORA_LOADER && !window.ELORA_LOADER._lite) { window.ELORA_LOADER._lite = true; window.ELORA_LOADER.set(1); window.ELORA_LOADER.finish(); }

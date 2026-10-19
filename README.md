@@ -2,7 +2,7 @@
 
 A calm, scroll-driven 3D landing page. One fixed WebGL stage (three.js) is driven by the
 page scroll: the camera glides from the landing hero through eight department scenes and
-ends on a contact panel. Each scene has **one** object. The logo (traced from the supplied
+the crew, and ends on a contact panel. Each scene has **one** object. The logo (traced from the supplied
 artwork) is used as vector in the page, loader and lite version, and extruded into 3D in
 the hero, Brand & Social and the finale.
 
@@ -38,6 +38,24 @@ buttons — *Open Gmail app / Gmail on web / Mail app / Copy brief* — appears 
 automatic hand-off did not take. The address lives at the top of `js/contact.js` (`TO`) and
 in the footer link in `index.html`. Every "Start a project" button scrolls to this form.
 
+## The crew
+
+The ninth stop lists the team by name. Point at a name (or tap it on a phone) and the
+details slide down: role, phone, email, an Instagram icon and, where there is one, a
+**Portfolio** button. Click or tap a name to keep it open; click again or press Esc to close.
+
+| Tap | What happens |
+| --- | --- |
+| Phone number | `tel:` link, so the phone's dialler opens (Android and iPhone) |
+| Email | Gmail opens with a message already addressed to that person (Android: Gmail app, iPhone: Gmail app, desktop: Gmail on the web). If it does not open, a small bar offers Gmail on the web / Mail app / Copy address |
+| Instagram icon | Android: the Instagram app (web page if it is not installed). iPhone: the https link, which iOS hands to the app when it is installed. Desktop: a new tab |
+| Portfolio | opens the website in a new tab |
+
+To change the team, edit the `CREW` list at the top of `js/crew.js`. The company Instagram
+and Facebook (contact panel and crew panel) use the same app hand-off; the ids live in
+`index.html` as `data-app="ig:growwith.elora"` and `data-app="fb:61595658505541"`, and the
+hand-off code is `js/links.js`.
+
 ## Built to stay smooth on any device
 
 The scenes are deliberately light (about 7,000 triangles and a handful of draw calls on
@@ -47,14 +65,19 @@ the frame time and steps down if a device struggles.
 
 | Level | Device | What it does |
 | --- | --- | --- |
-| 3 | desktop, strong GPU | sharp 2x rendering, full-size textures |
-| 2 | laptop / integrated GPU | 1.6x rendering |
-| 1 | phones, tablets | 1.25x rendering, plain materials, 60 fps cap |
-| 0 | low-end phones | 1x, half-size textures, no anti-aliasing, 30 fps cap |
+| 3 | desktop, strong GPU | up to 2.5x rendering, full-size textures |
+| 2 | laptop / integrated GPU | 2x rendering |
+| 1 | phones, tablets | 2x rendering, plain materials, 60 fps cap |
+| 0 | low-end phones (about 2 GB RAM) | 1.5x rendering, 3/4-size textures |
 | lite | no WebGL2, software renderer, or still too slow at level 0 | a light CSS-only page (same copy, same contact form) |
 
+Every level keeps anti-aliasing on, and the logo outline is a smooth sub-pixel trace, so edges
+stay sharp. While it runs, `js/main.js` keeps the frame rate even: a phone that cannot hold
+60 fps settles at a steady 30 fps, then renders fewer pixels, then drops a level, and gives the
+pixels back after a long calm stretch.
+
 The loader is plain SVG (no WebGL), the render loop allocates nothing per frame, and
-animated canvases redraw at 7–20 Hz depending on level.
+animated canvases redraw at 8–20 Hz depending on level.
 
 Test any level in the address bar: `?q=0`, `?q=1`, `?q=2`, `?q=3`, or `?lite=1`.
 
@@ -70,19 +93,22 @@ Test any level in the address bar: `?q=0`, `?q=1`, `?q=2`, `?q=3`, or `?lite=1`.
 | `js/loader.js` | The logo-in-a-ring loading screen |
 | `js/main.js` | Engine: renderer, light, scroll → camera, text animation, quality control |
 | `js/kit.js` | Shared helpers: materials, canvas screens, contact shadows, the 3D logo |
-| `js/contact.js` | The Gmail hand-off |
+| `js/contact.js` | The Gmail hand-off for the contact form |
+| `js/links.js` | App hand-off for Instagram, Facebook and Gmail links (Android / iPhone / desktop) |
+| `js/crew.js` | The team list and its slide-down details (edit the `CREW` list) |
 | `js/lite.js` | The light fallback page |
-| `js/st-hero.js` … `st-finale.js` | One 3D scene per section |
+| `js/st-hero.js` … `st-finale.js` | One 3D scene per section (`st-crew.js` is the ring of six beads) |
 
 Scenes, in scroll order: **hero** (the 3D logo) → Poster Design (a three-layer poster) → Reel
 Editing (a phone) → Meta & Google Ads (a target and one arrow) → Web Development (a
 three-layer web page) → Automations (four steps and a travelling dot) → CRM (a glass funnel)
-→ Analytics (seven bars and a line) → Brand & Social (the logo and its three colours) →
+→ Analytics (seven bars and a line) → Brand & Social (the logo and its three colours) → **crew** (a ring of six beads) →
 **contact** (the logo, larger).
 
 ## Things to check before launch
 
-- **Social links** — the Instagram / LinkedIn / YouTube links in the `#contact` block of `index.html` are `#` placeholders.
+- **Social links** — only Instagram and Facebook are linked (LinkedIn / YouTube were removed because no links were given). Add more as `<a data-app="…">` or plain links in the `#contact` block of `index.html`.
+- **Phones** — the app hand-offs (Gmail, Instagram, Facebook) were checked as generated links in an emulated Android browser; try them once on a real Android phone and iPhone.
 - **Copy** — every chapter is a `<section class="chapter">` in `index.html`. The mock-ups inside the scenes use a generic "yourbrand".
 
 ## Adding or reordering a department

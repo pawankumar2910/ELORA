@@ -11,7 +11,7 @@
     /* what this device can afford (see js/perf.js); scenes read K.q while building */
     const PF = ELORA.perf || { level: 3, QL: [{ anim: 7 }, { anim: 10 }, { anim: 14 }, { anim: 20 }] };
     const LV = PF.level;
-    K.q = { level: LV, tex: [.5, .75, 1, 1][LV], simple: LV <= 1, maps: LV >= 2, seg: [.5, .7, 1, 1][LV], animStep: 1 / PF.QL[LV].anim, aniso: [1, 2, 4, 8][LV] };
+    K.q = { level: LV, tex: [.75, 1, 1, 1][LV], simple: LV <= 1, maps: LV >= 2, seg: [.85, 1, 1, 1][LV], animStep: 1 / PF.QL[LV].anim, aniso: [2, 4, 8, 8][LV] };
     K.seg = n => Math.max(8, Math.round(n * K.q.seg));
 
     /* the whole palette: paper, ink, one blue */
@@ -142,6 +142,8 @@
     };
 
     /* ---------------------------------------------------------- the logo */
+    /* smooth the shading along curved side walls (the outline is a polygon), keep the hard edge where the face turns */
+    const crease = g => X.toCreasedNormals ? X.toCreasedNormals(g, Math.PI / 5) : g;
     const flat2d = (flat) => { let d = ''; for (let i = 0; i < flat.length; i += 2) d += (i ? 'L' : 'M') + flat[i] + ' ' + flat[i + 1]; return d + 'Z'; };
     const flatShape = (flat, w, h, s) => {
       const sh = new THREE.Shape();
@@ -151,9 +153,9 @@
     /* the speech-bubble mark, extruded: blue lacquer with the white megaphone raised on its face */
     K.logo3D = (size = 2) => {
       const M = ELORA.LOGO.mark, s = size / M.h, g = new THREE.Group();
-      const depth = size * .17, bev = size * .03, segs = K.q.simple ? 1 : 3;
-      const bg = new THREE.ExtrudeGeometry(flatShape(M.bubble, M.w, M.h, s), { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: segs, curveSegments: 1 });
-      bg.translate(0, 0, -depth / 2);
+      const depth = size * .17, bev = size * .03, segs = K.q.simple ? 3 : 4;
+      let bg = new THREE.ExtrudeGeometry(flatShape(M.bubble, M.w, M.h, s), { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: segs, curveSegments: 1 });
+      bg.translate(0, 0, -depth / 2); bg = crease(bg);
       const pos = bg.attributes.position, col = new Float32Array(pos.count * 3), c0 = new THREE.Color(M.c0), c1 = new THREE.Color(M.c1), tc = new THREE.Color();
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i) / s + M.w / 2, y = M.h / 2 - pos.getY(i) / s;
@@ -168,7 +170,7 @@
       g.add(bubble);
       const gm = K.m.phys({ color: 0xffffff, metalness: 0, roughness: .34, clearcoat: .8, clearcoatRoughness: .16, envMapIntensity: .55, emissive: 0xffffff, emissiveIntensity: .5 });
       const glyphs = M.glyph.map(f => {
-        const gd = size * .09, geo = new THREE.ExtrudeGeometry(flatShape(f, M.w, M.h, s), { depth: gd, bevelEnabled: true, bevelThickness: bev * .6, bevelSize: bev * .5, bevelSegments: segs, curveSegments: 1 });
+        const gd = size * .09, geo = crease(new THREE.ExtrudeGeometry(flatShape(f, M.w, M.h, s), { depth: gd, bevelEnabled: true, bevelThickness: bev * .6, bevelSize: bev * .5, bevelSegments: segs, curveSegments: 1 }));
         const m = new THREE.Mesh(geo, gm); m.position.z = depth / 2 + bev * .4; g.add(m); return m;
       });
       g.userData = { bubble, glyphs, depth }; return g;
@@ -184,9 +186,9 @@
           for (let i = 0; i < f.length; i += 2) { const x = (f[i] - W.w / 2) * s, y = (W.h / 2 - f[i + 1]) * s; i ? p.lineTo(x, y) : p.moveTo(x, y); }
           p.closePath(); sh.holes.push(p);
         }
-        const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: K.q.simple ? 1 : 2, curveSegments: 1 });
+        const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: K.q.simple ? 2 : 3, curveSegments: 1 });
         geo.translate(0, 0, -depth / 2);
-        const m = new THREE.Mesh(geo, mat); g.add(m); return m;
+        const m = new THREE.Mesh(crease(geo), mat); g.add(m); return m;
       });
       g.userData.w = W.w * s; return g;
     };

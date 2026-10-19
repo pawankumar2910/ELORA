@@ -128,7 +128,7 @@ canvas#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-a
 @keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 @media (min-width:821px) and (max-height:800px){
   .index a:not(.on),.index u:not(.on){display:none}
-  .index u.on::after{content:" / 08";opacity:.8}
+  .index u.on::after{content:" / 09";opacity:.8}
 }
 
 /* ---- finale: contact panel */
@@ -138,10 +138,10 @@ canvas#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-a
 #contact.on{pointer-events:auto}
 #contact .c-scroll{position:relative;max-height:calc(100vh - 96px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
   padding:clamp(22px,3vh,40px) clamp(22px,2.6vw,38px);scrollbar-width:thin;scrollbar-color:rgba(12,18,38,.25) transparent}
-#contact .eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:12px;font:500 10.5px/1 var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--blue)}
-#contact .eyebrow s{display:block;width:30px;height:1px;background:var(--blue);text-decoration:none}
-#contact h2{font-family:var(--serif);font-weight:400;line-height:.98;letter-spacing:-.012em;font-size:clamp(30px,3vw,46px);text-wrap:balance;color:var(--ink)}
-#contact .say{margin:12px 0 0;font-family:var(--serif);font-style:italic;font-size:clamp(17px,1.3vw,20px);line-height:1.3;color:var(--ink2)}
+#contact .eyebrow,#crew .eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:12px;font:500 10.5px/1 var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--blue)}
+#contact .eyebrow s,#crew .eyebrow s{display:block;width:30px;height:1px;background:var(--blue);text-decoration:none}
+#contact h2,#crew h2{font-family:var(--serif);font-weight:400;line-height:.98;letter-spacing:-.012em;font-size:clamp(30px,3vw,46px);text-wrap:balance;color:var(--ink)}
+#contact .say,#crew .say{margin:12px 0 0;font-family:var(--serif);font-style:italic;font-size:clamp(17px,1.3vw,20px);line-height:1.3;color:var(--ink2)}
 #cform{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:18px}
 #cform label{display:grid;gap:7px;min-width:0}
 #cform .f1{grid-column:1}#cform .f2{grid-column:2}#cform .f3,#cform .f4{grid-column:1/-1}
@@ -176,6 +176,56 @@ canvas#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-a
 #contact .base .up{color:var(--ink2)}
 #contact .base .up:hover{color:var(--ink)}
 
+
+/* ---- the crew: names, with details that slide down */
+#crew{position:fixed;z-index:6;top:50%;right:clamp(18px,4vw,72px);width:min(540px,46vw);max-height:calc(100vh - 104px);overflow-y:auto;overflow-x:hidden;
+  transform:translate3d(0,-48%,0);opacity:0;visibility:hidden;pointer-events:none;padding:2px 2px 6px;scrollbar-width:thin;scrollbar-color:rgba(12,18,38,.25) transparent}
+#crew.on{pointer-events:auto}
+@media (min-width:821px) and (max-height:880px){#crew .say{display:none}}
+#crew .say .tap{display:none}
+@media (hover:none){#crew .say .hov{display:none}#crew .say .tap{display:inline}}
+.cr-list{list-style:none;margin-top:clamp(14px,2.2vh,26px);border-bottom:1px solid var(--hair)}
+.cr{border-top:1px solid var(--hair)}
+.cr-h{display:grid;grid-template-columns:34px 1fr 20px;align-items:center;width:100%;padding:clamp(7px,1.15vh,13px) 0;background:none;border:0;text-align:left;cursor:pointer;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.cr-h u{text-decoration:none;font:500 10.5px/1 var(--sans);letter-spacing:.14em;color:var(--blue);font-variant-numeric:tabular-nums}
+.cr-n{font-family:var(--serif);font-size:clamp(24px,2.3vw,38px);line-height:1.05;letter-spacing:-.012em;transition:transform .4s cubic-bezier(.2,.7,.2,1),color .25s ease}
+.cr-p{position:relative;width:13px;height:13px;justify-self:end}
+.cr-p::before,.cr-p::after{content:"";position:absolute;left:0;right:0;top:50%;height:1.5px;margin-top:-.75px;background:var(--ink);transition:transform .35s ease,background .25s ease}
+.cr-p::after{transform:rotate(90deg)}
+.cr.open .cr-p::after{transform:rotate(0)}
+.cr.open .cr-p::before,.cr.open .cr-p::after{background:var(--blue)}
+.cr.open .cr-n{color:var(--blue);transform:translateX(6px)}
+.cr-d{max-height:0;overflow:hidden;visibility:hidden;opacity:0;transition:max-height .42s cubic-bezier(.2,.7,.2,1),opacity .25s ease,visibility 0s .42s}
+.cr.open .cr-d{max-height:360px;visibility:visible;opacity:1;transition:max-height .42s cubic-bezier(.2,.7,.2,1),opacity .35s ease .06s,visibility 0s}
+.cr-in{padding:2px 0 18px 34px}
+.cr-role{font-family:var(--serif);font-style:italic;font-size:clamp(17px,1.4vw,21px);line-height:1.25;color:var(--ink2)}
+.cr-c{display:flex;flex-wrap:wrap;gap:12px 34px;margin-top:14px}
+.cr-c div{min-width:0}
+.cr-c dt{font:500 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.cr-c dd{margin-top:7px;font:500 15px/1.3 var(--sans);overflow-wrap:anywhere}
+.cr-c a{padding:2px 0;border-bottom:1px solid var(--hair);transition:color .2s ease,border-color .2s ease}
+.cr-c a:hover{color:var(--blue);border-color:var(--blue)}
+.cr-act{display:flex;align-items:center;gap:10px;margin-top:16px}
+.cr-ig{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;color:var(--ink);box-shadow:0 0 0 1px rgba(12,18,38,.3) inset;transition:background .25s ease,color .25s ease}
+.cr-ig svg{width:20px;height:20px}
+.cr-ig:hover{background:var(--ink);color:#fff}
+.cr-pf{display:inline-flex;align-items:center;gap:9px;height:42px;padding:0 20px;border-radius:999px;background:var(--ink);color:#fff;font:500 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;transition:background .25s ease}
+.cr-pf span{font-size:14px;line-height:1}
+.cr-pf:hover{background:var(--blue)}
+.cr-h:focus-visible,.cr-c a:focus-visible,.cr-ig:focus-visible,.cr-pf:focus-visible{outline:1.5px solid var(--blue);outline-offset:3px}
+.cr-foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin-top:16px;font:500 10.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.cr-foot a{color:var(--ink2);transition:color .2s ease}
+.cr-foot a:hover{color:var(--blue)}
+
+/* ---- a small note when an app did not open */
+#toast{position:fixed;z-index:40;left:50%;bottom:max(18px,env(safe-area-inset-bottom));width:min(440px,calc(100vw - 28px));padding:14px 40px 14px 16px;border-radius:14px;
+  background:var(--ink);color:#fff;font:400 14px/1.4 var(--sans);transform:translate(-50%,16px);opacity:0;visibility:hidden;transition:opacity .3s ease,transform .3s ease,visibility 0s .3s}
+#toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);transition-delay:0s}
+#toast div{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#toast a,#toast button:not(.x){display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border:0;border-radius:999px;cursor:pointer;font:500 12.5px/1 var(--sans);color:#fff;background:transparent;box-shadow:0 0 0 1px rgba(255,255,255,.4) inset}
+#toast a:hover,#toast button:not(.x):hover{background:#fff;color:var(--ink)}
+#toast .x{position:absolute;right:6px;top:6px;width:32px;height:32px;border:0;background:none;color:#fff;font-size:22px;line-height:1;cursor:pointer;opacity:.7}
+
 /* ---- phones */
 @media (max-width:820px){
   .bar{height:58px;padding:0 18px;gap:14px}
@@ -202,8 +252,16 @@ canvas#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-a
   .index a{font-size:12px;line-height:15px}
   .index u{font-size:10px;line-height:15px}
   .index a:not(.on),.index u:not(.on){display:none}
-  .index u.on::after{content:" / 08";opacity:.8}
+  .index u.on::after{content:" / 09";opacity:.8}
   .vol,.cue{display:none}
+  #crew{left:14px;right:14px;width:auto;top:auto;bottom:max(40px,env(safe-area-inset-bottom));max-height:calc(100vh - 110px);transform:translate3d(0,20px,0);padding:18px 16px 12px;border-radius:18px;background:rgba(245,243,238,.95);box-shadow:0 0 0 1px var(--hair)}
+  #crew h2{font-size:clamp(28px,8vw,36px)}
+  #crew .say{display:none}
+  .cr-list{margin-top:14px}
+  .cr-n{font-size:clamp(25px,7.4vw,32px)}
+  .cr-h{padding:10px 0}
+  .cr-in{padding-left:34px}
+  .cr-c{gap:10px 26px}
   #contact{left:14px;right:14px;width:auto;top:68px;max-height:calc(100vh - 82px);transform:translate3d(0,20px,0)}
   #contact .c-scroll{max-height:calc(100vh - 82px);padding:22px 20px 26px}
   #cform{grid-template-columns:1fr}
@@ -216,6 +274,7 @@ canvas#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-a
 /* weaker devices: no big shadows, no idle loops */
 [data-q="0"] #contact,[data-q="1"] #contact{box-shadow:0 0 0 1px var(--hair)}
 [data-q="0"] .cue::after{animation:none}
+[data-q="0"] .l,[data-q="1"] .l,[data-q="0"] .lk-svg .l,[data-q="1"] .lk-svg .l{will-change:auto}
 
 /* ============================================================== the lite page
    For devices that cannot run the 3D scene. Pure HTML + CSS, no animation loops. */
@@ -248,6 +307,9 @@ canvas#gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-a
 .lite #contact{position:relative!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
   width:min(640px,100%)!important;max-height:none!important;margin:0 auto;right:auto;top:auto}
 .lite #contact .c-scroll{max-height:none}
+.lt-crew{padding:12px clamp(18px,5vw,64px) 40px}
+.lite #crew{position:relative!important;inset:auto!important;transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  width:min(640px,100%)!important;max-height:none!important;margin:0 auto;overflow:visible;right:auto;top:auto;bottom:auto}
 .rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
 .rv.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}

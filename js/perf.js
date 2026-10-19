@@ -4,10 +4,10 @@
    step down while the page runs (main.js watches the frame time).
 
    Levels
-     3  desktop / strong GPU : sharp 2x rendering, full-size textures
-     2  laptop / integrated   : 1.6x rendering
-     1  phone / tablet        : 1.25x rendering, plain materials, 60 fps cap
-     0  low-end phone         : 1x, half-size textures, no anti-aliasing, 30 fps cap
+     3  desktop / strong GPU : up to 2.5x rendering, full-size textures
+     2  laptop / integrated   : 2x rendering
+     1  phone / tablet        : 2x rendering, plain materials, 60 fps cap
+     0  low-end phone         : 1.5x rendering, 3/4-size textures (drops to 30 fps by itself if it must)
    lite : a light CSS-only page for devices without WebGL2, with a software renderer,
           or that cannot hold frame rate even at level 0.
 
@@ -53,12 +53,14 @@
   if (qs.get('lite') === '1') lite = true;
   if (qs.get('lite') === '0') lite = !webgl2;
 
-  /* per-level settings; main.js reads these live */
+  /* per-level settings; main.js reads these live.
+     dpr is the sharpness ceiling (never above the screen's own ratio); every level keeps
+     anti-aliasing on, because jagged edges are the first thing the eye catches. */
   const QL = [
-    { dpr: 1.0, aa: false, anim: 7, cap: 32 },
-    { dpr: 1.25, aa: true, anim: 10, cap: 16 },
-    { dpr: 1.6, aa: true, anim: 14, cap: 16 },
-    { dpr: 2.0, aa: true, anim: 20, cap: 0 }
+    { dpr: 1.5, aa: true, anim: 8, cap: 16 },
+    { dpr: 2.0, aa: true, anim: 12, cap: 16 },
+    { dpr: 2.0, aa: true, anim: 16, cap: 16 },
+    { dpr: 2.5, aa: true, anim: 20, cap: 0 }
   ];
 
   E.perf = { level, startLevel: level, lite, webgl2, gpu, touch, mem, cores, dpr, saveData, reducedMotion, software, QL };

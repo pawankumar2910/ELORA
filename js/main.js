@@ -28,6 +28,7 @@
     THREE = await import('three'); bump(.1);
     const m = await import('three/addons/geometries/RoundedBoxGeometry.js');
     X.RoundedBoxGeometry = m.RoundedBoxGeometry;
+    try { X.toCreasedNormals = (await import('three/addons/utils/BufferGeometryUtils.js')).toCreasedNormals; } catch (e) { /* flat-shaded logo sides: still fine */ }
     window.THREE = THREE;
     bump(.3);
   } catch (e) {
@@ -122,7 +123,7 @@
   const key = new THREE.DirectionalLight(0xffffff, 1.0); scene.add(key, key.target);
 
   /* -------------------------------------------------------------- stations */
-  const ZS = [0, -1.5, 1.2, -1.8, .8, -1.5, 1.2, -1.8, .6, 0];
+  const ZS = [0, -1.5, 1.2, -1.8, .8, -1.5, 1.2, -1.8, .6, -1.2, 0];
   const R = [], buildMs = [];
   const ctx = { THREE, K, S, renderer, scene, camera, reduced, get PORT() { return PORT; } };
   for (let k = 0; k < N; k++) {
@@ -159,10 +160,11 @@
     return { el, big, k: +el.dataset.i, side: el.classList.contains('right') ? 'right' : 'left', letters, parts: [$('.num', el), $('.lede', el), $('.meta', el)] };
   });
   const lockup = $('#lockup'), lkLetters = $$('#lkword .l');
-  const bar = $('#bar'), indexEl = $('#index'), vol = $('#vol'), cue = $('#cue'), scrim = $('#scrim'), contact = $('#contact');
+  const bar = $('#bar'), indexEl = $('#index'), vol = $('#vol'), cue = $('#cue'), scrim = $('#scrim'), contact = $('#contact'), crew = $('#crew');
+  const CREW_I = ST.findIndex(s => s.id === 'crew');
   const idxLinks = $$('a', indexEl), idxNums = $$('u', indexEl);
   const volNo = $('#volNo'), volName = $('#volName');
-  const NAMES = ['Marketing Media', 'Poster Design', 'Reel Editing', 'Meta & Google Ads', 'Web Development', 'Automations', 'CRM Setup', 'Analytics', 'Brand & Social', 'Start a project'];
+  const NAMES = ['Marketing Media', 'Poster Design', 'Reel Editing', 'Meta & Google Ads', 'Web Development', 'Automations', 'CRM Setup', 'Analytics', 'Brand & Social', 'The Crew', 'Start a project'];
 
   function fit() {
     chapters.forEach(c => {
@@ -194,11 +196,11 @@
     }
   }
 
-  let finaleA = 0;
+  let finaleA = 0, crewA = 0;
   function updateUI(T) {
     const rev = S.reveal;
     const chromeA = K.ramp(rev, .45, 1);
-    setO(bar, chromeA); setO(indexEl, chromeA * (1 - finaleA));
+    setO(bar, chromeA); setO(indexEl, chromeA * (1 - Math.max(finaleA, crewA)));
     setO(vol, chromeA); setO(cue, chromeA * (T.i === 0 ? 1 - K.ramp(T.f, 0, .3) : 0) * (S.sp < .35 ? 1 : 0));
     /* hero lockup */
     {
@@ -239,7 +241,14 @@
     if (cur !== updateUI.cur) {
       updateUI.cur = cur;
       idxLinks.forEach((a, n) => { const on = n + 1 === cur; a.classList.toggle('on', on); idxNums[n].classList.toggle('on', on); a.style.opacity = on ? 1 : .45; idxNums[n].style.opacity = on ? 1 : ''; });
-      volName.textContent = NAMES[Math.min(cur, NAMES.length - 1)]; volNo.textContent = String(Math.min(cur, 8)).padStart(2, '0');
+      volName.textContent = NAMES[Math.min(cur, NAMES.length - 1)]; volNo.textContent = String(Math.min(cur, 9)).padStart(2, '0');
+    }
+    /* crew panel */
+    if (crew) {
+      const a = crewA;
+      setVis(crew, a > .01 ? 'visible' : 'hidden'); setO(crew, K.ramp(a, .2, 1));
+      setT(crew, PORT ? `translate3d(0,${((1 - a) * 24).toFixed(1)}px,0)` : `translate3d(${((1 - a) * 40).toFixed(1)}px,-48%,0)`);
+      const on = a > .75; if (crew.classList.contains('on') !== on) { crew.classList.toggle('on', on); crew.setAttribute('aria-hidden', on ? 'false' : 'true'); }
     }
     /* contact panel */
     const ca = finaleA;
@@ -338,14 +347,14 @@
   canvas.addEventListener('pointerenter', () => stage.classList.add('grab')); canvas.addEventListener('pointerleave', () => stage.classList.remove('grab'));
 
   /* --------------------------------------------------- quality level, applied live */
-  let minMs = 0;
+  let minMs = 0, capMs = 0;                        /* capMs: a 30 fps cap the governor chose for this device */
   function applyLevel(nl, nr) {
     lv = nl; res = nr; P.level = lv; const q = QL[lv];
     document.documentElement.dataset.q = String(lv);
     DPR = prFor(lv, res);
     renderer.setPixelRatio(DPR); renderer.setSize(VW, VH, false);
     K.q.animStep = 1 / q.anim;
-    minMs = q.cap || (P.touch ? 16 : 0);
+    minMs = Math.max(capMs, q.cap || (P.touch ? 16 : 0));
   }
   function resize() {
     /* a phone's address bar sliding away changes the height a little: not a real resize */
@@ -362,20 +371,31 @@
   sizeTrack(); fit();
   document.fonts && document.fonts.ready.then(fit);
 
-  /* watch the frame time; step down before the page ever feels slow */
-  let ema = 16, slow = 0, cool = 0;
-  function adapt(ms) {
+  /* Watch the frame time and keep the page feeling smooth, in this order of preference:
+       1. a phone that cannot hold 60 fps settles at a steady 30 (a wobbling 45 looks worse than a calm 30)
+       2. fewer pixels (the edges stay anti-aliased)
+       3. a lighter quality level, and in the end the light page
+     After a long calm stretch the resolution is given back, but never above a ceiling that already failed once. */
+  let ema = 16, slow = 0, cool = 0, calm = 0, resMax = 1, upAt = -1e9;
+  function adapt(ms, now) {
     if (S.reveal < 1 || S.t < 2.5 || ms > 120) return;
     if (cool > 0) { cool -= ms; return; }
     ema += (ms - ema) * .1;
-    const budget = minMs >= 30 ? 46 : 27;
+    const budget = minMs >= 30 ? 40 : 21;
     if (ema > budget) slow += ms; else slow = Math.max(0, slow - ms * .6);
-    if (slow > 1500) {
-      slow = 0; ema = 16; cool = 2200;
-      if (res > .76) applyLevel(lv, Math.max(.7, res - .15));       /* first just fewer pixels */
-      else if (lv > 0) applyLevel(lv - 1, 1);                       /* then a lighter level */
+    calm = ema < budget * .66 && minMs < 30 ? calm + ms : 0;
+    if (slow > 1200) {
+      slow = 0; calm = 0; ema = 16; cool = 2000;
+      const bumped = now - upAt < 14000;
+      if (P.touch && minMs < 30) { capMs = 32; minMs = Math.max(minMs, 32); }
+      else if (res > .76) applyLevel(lv, Math.max(.7, res - .15));       /* first just fewer pixels */
+      else if (lv > 0) applyLevel(lv - 1, 1);                            /* then a lighter level */
       else if (res > .6) applyLevel(0, .6);
-      else E.enterLite('performance');                              /* nothing left to give */
+      else E.enterLite('performance');                                   /* nothing left to give */
+      if (bumped) resMax = res;
+    } else if (calm > 9000 && res < resMax) {
+      calm = 0; upAt = now; cool = 1500;
+      applyLevel(lv, Math.min(resMax, +(res + .1).toFixed(2)));
     }
   }
 
@@ -398,7 +418,7 @@
     if (minMs && now - lastRender < minMs - 1.5) return;          /* frame cap: phones, 120 Hz screens */
     const ms = now - lastRender; lastRender = now;
     const dt = Math.min(.05, Math.max(.0005, (now - last) / 1000)); last = now; S.t += dt;
-    adapt(ms);
+    adapt(ms, now);
 
     /* scroll -> progress */
     S.target = S.lockSp ?? Math.max(0, Math.min(TOTAL, scrollY / VH));
@@ -417,6 +437,7 @@
     if (!dragging) { S.drag += S.dragV; S.dragV *= Math.exp(-dt * 5); S.drag *= Math.exp(-dt * 1.6); }
 
     finaleA = N < 2 ? 0 : (T.i === N - 1 ? 1 : (T.i === N - 2 ? K.ramp(T.f, .6, 1) : 0));
+    crewA = CREW_I < 0 ? 0 : (T.i === CREW_I ? 1 - K.ramp(T.f, 0, .4) : (T.i === CREW_I - 1 ? K.ramp(T.f, .55, 1) : 0));
 
     aimCamera(T);
 
