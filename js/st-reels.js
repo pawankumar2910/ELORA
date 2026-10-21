@@ -1,8 +1,7 @@
-/* Scene 02 — Reel Editing.
+/* Part 02 — Reel Editing.
    One phone playing a quiet reel: a serif caption that changes on the beat,
    a hairline progress bar, a soft blue light drifting behind. */
-ELORA.add({
-  id: 'reels',
+ELORA.part('reels', {
   cam: { fitW: 3.8, p: [-.3, 2.2, 12.8], t: [0, 2.0, 0], fov: 28, lens: [-.2, .04, 0, .2], dolly: 1.4, drift: -.5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);
@@ -26,7 +25,7 @@ ELORA.add({
       c.fillStyle = '#0c1226'; c.font = '600 26px Inter, sans-serif'; c.fillText('@yourbrand', 102, h - 160);
       c.fillStyle = 'rgba(12,18,38,.55)'; c.font = '400 22px Inter, sans-serif'; c.fillText('Original audio', 38, h - 112);
       c.fillStyle = 'rgba(12,18,38,.14)'; c.fillRect(36, h - 60, w - 72, 4); c.fillStyle = '#0c1226'; c.fillRect(36, h - 60, (w - 72) * ((t * .12) % 1), 4);
-    }));
+    }, { scale: K.q.simple ? .75 : 1 }));
     const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.44, 3.04), K.m.screen(reel.tex)); screen.position.z = .1; phone.add(screen);
     const shadow = K.blob(3.2, .3); shadow.position.y = FLOOR + .01; g.add(shadow);
 

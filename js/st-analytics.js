@@ -1,9 +1,8 @@
-/* Scene 07 — Analytics & Reporting.
+/* Part 07 — Analytics & Reporting.
    Seven bars rise one after another on a plain slab, and a single blue line
    draws itself across their tops. */
-ELORA.add({
-  id: 'analytics',
-  cam: { fitW: 7.6, p: [.3, 2.4, 13.2], t: [0, 1.75, 0], fov: 34, lens: [.22, .04, 0, .2], dolly: 1.3, drift: .5 },
+ELORA.part('analytics', {
+  cam: { fitW: 7.6, p: [.3, 2.4, 13.2], t: [0, 1.75, 0], fov: 34, lens: [.25, .04, 0, .2], dolly: 1.3, drift: .5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);
     const FLOOR = .06, BASE = FLOOR + .15;

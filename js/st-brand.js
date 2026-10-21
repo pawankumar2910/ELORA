@@ -1,7 +1,6 @@
-/* Scene 08 — Brand & Social.
+/* Part 08 — Brand & Social.
    The logo, and the three colours it is made of, set out like a page from a brand guide. */
-ELORA.add({
-  id: 'brand',
+ELORA.part('brand', {
   cam: { fitW: 4.6, p: [-.3, 2.5, 13.2], t: [0, 2.2, 0], fov: 28, lens: [-.2, .04, 0, .2], dolly: 1.4, drift: -.5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);

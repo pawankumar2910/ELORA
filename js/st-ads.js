@@ -1,7 +1,6 @@
-/* Scene 03 — Meta & Google Ads.
+/* Part 03 — Meta & Google Ads.
    A bullseye on a slim stand and a single arrow that lands in it as you scroll. */
-ELORA.add({
-  id: 'ads',
+ELORA.part('ads', {
   cam: { fitW: 4.4, p: [.3, 2.2, 12.6], t: [.2, 2.0, 0], fov: 28, lens: [.2, .04, 0, .2], dolly: 1.4, drift: .5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);

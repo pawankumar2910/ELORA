@@ -1,8 +1,7 @@
-/* Scene 04 — Web Development.
+/* Part 04 — Web Development.
    One website, lifted apart into three layers — the window, the page, and what floats
    above it — that settle back together as you read. */
-ELORA.add({
-  id: 'web',
+ELORA.part('web', {
   cam: { fitW: 4.8, p: [-.3, 2.3, 13.2], t: [0, 2.0, 0], fov: 28, lens: [-.2, .04, 0, .2], dolly: 1.4, drift: -.5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);

@@ -5,6 +5,9 @@
   const ELORA = window.ELORA = window.ELORA || {};
   ELORA.stations = ELORA.stations || [];
   ELORA.add = def => ELORA.stations.push(def);
+  /* a part is a stage that a department tour (st-services.js) places in a row; it is not a station by itself */
+  ELORA.parts = ELORA.parts || {};
+  ELORA.part = (id, def) => { ELORA.parts[id] = def; };
 
   ELORA.initKit = function (THREE, X) {
     const K = { THREE, X };
@@ -105,8 +108,8 @@
 
     /* a canvas that is redrawn — a screen, a chart, a poster layer.
        Drawn in logical w x h units; the canvas itself is scaled down on weak devices. */
-    K.screen = (w, h, draw) => {
-      const sc = K.q.tex, cw = Math.max(16, Math.round(w * sc)), ch = Math.max(16, Math.round(h * sc));
+    K.screen = (w, h, draw, o = {}) => {
+      const sc = K.q.tex * (o.scale || 1), cw = Math.max(16, Math.round(w * sc)), ch = Math.max(16, Math.round(h * sc));
       const c = K.canvas(cw, ch), g = c.getContext('2d'), tex = K.ctexture(c);
       const s = { canvas: c, ctx: g, tex, w, h, draw };
       s.redraw = (t, st) => { g.setTransform(sc, 0, 0, sc, 0, 0); g.clearRect(0, 0, w, h); draw(g, w, h, t, st || {}); tex.needsUpdate = true; };

@@ -15,13 +15,13 @@ ELORA.add({
     return {
       group: g,
       update(u) {
-        const t = u.t, rv = K.back(K.ramp(u.reveal, .25, .95)), lv = K.ramp(u.leave, 0, .7);
+        const t = u.t, rv = K.eo(K.ramp(u.reveal, .2, .95)), lv = K.ramp(u.leave, 0, .7), dw = u.dw;
         rig.rotation.y += ((u.S.mx * .12 + u.drag) - rig.rotation.y) * Math.min(1, u.dt * 5);
         const bob = Math.sin(t * .8) * .08;
-        logo.position.y = FLOOR + 2.15 + bob + (1 - rv) * -.8 + lv * .5;
-        logo.rotation.y = Math.sin(t * .5) * .38 + u.S.mx * .25 - lv * .5;
+        logo.position.y = FLOOR + 2.15 + bob + (1 - rv) * -1.1 + lv * .5 + dw * .12;
+        logo.rotation.y = Math.sin(t * .5) * .38 + u.S.mx * .25 - lv * .5 + (1 - K.eo(K.ramp(u.reveal, .1, 1))) * 2.2 + dw * 1.2;   /* it turns into place as the page opens */
         logo.rotation.x = Math.sin(t * .6) * .03 - u.S.my * .08;
-        logo.scale.setScalar(Math.max(.001, .85 + .15 * rv));
+        logo.scale.setScalar(Math.max(.001, (.62 + .38 * rv) * (1 + dw * .08 + lv * .1)));
         logo.visible = rv > .01;
         shadow.scale.setScalar(1 - bob * .5 + lv * .15); shadow.material.opacity = .3 * K.clamp01(rv);
       }

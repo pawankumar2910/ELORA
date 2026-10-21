@@ -33,12 +33,14 @@
     main.appendChild(hero);
 
     const deps = document.createElement('section'); deps.className = 'lt-deps'; deps.id = 'departments';
-    deps.innerHTML = '<h2 class="lt-h">Eight departments, one studio</h2>';
+    deps.innerHTML = '<h2 class="lt-h">Three departments, one studio</h2>';
     const grid = document.createElement('div'); grid.className = 'lt-grid';
     $$('.chapter').forEach(c => {
-      const no = $('.num span:first-child', c), nm = $('.num span:last-child', c), lede = $('.lede', c), meta = $('.meta', c);
-      const card = document.createElement('article'); card.className = 'lt-card'; card.id = 'dep' + c.dataset.i;
-      card.innerHTML = '<p class="lt-no">' + (no ? no.textContent : '') + '</p><h3>' + (nm ? nm.textContent : '') + '</h3><p class="lt-lede">' + (lede ? lede.textContent : '') + '</p>';
+      const no = $('.num span:first-child', c), dept = $('.num span:last-child', c), lede = $('.lede', c), meta = $('.meta', c), title = c.dataset.title || '';
+      let txt = lede ? lede.textContent.trim() : ''; if (txt.indexOf(title + '.') === 0) txt = txt.slice(title.length + 1).trim();
+      const card = document.createElement('article'); card.className = 'lt-card'; card.id = 'dep' + c.dataset.k + '-' + c.dataset.b;
+      card.innerHTML = '<p class="lt-no">' + (no ? no.textContent : '') + ' &middot; ' + (dept ? dept.innerHTML : '') + '</p><h3></h3><p class="lt-lede"></p>';
+      card.querySelector('h3').textContent = title; card.querySelector('.lt-lede').textContent = txt;
       if (meta) { const m = meta.cloneNode(true); m.className = 'lt-meta'; card.appendChild(m); }
       grid.appendChild(card);
     });

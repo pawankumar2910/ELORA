@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>elora — Marketing Media</title>
-<meta name="description" content="elora Marketing Media — poster design, reel editing, Meta &amp; Google ads, web development, automations and CRM under one roof.">
+<meta name="description" content="elora Marketing Media — editing and design, technical and marketing under one roof: posters, reels, websites, automations, CRM, ads and analytics.">
 <meta property="og:title" content="elora — Marketing Media">
 <meta property="og:description" content="Posters, reels, ads, websites, automations and CRM — one studio that grows your brand.">
 <meta property="og:type" content="website">
@@ -15,8 +15,10 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
 <link rel="modulepreload" href="https://unpkg.com/three@0.169.0/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="https://unpkg.com/three@0.169.0/examples/jsm/geometries/RoundedBoxGeometry.js" crossorigin>
+<link rel="modulepreload" href="https://unpkg.com/three@0.169.0/examples/jsm/utils/BufferGeometryUtils.js" crossorigin>
 <link rel="stylesheet" href="css/style.css">
 
 <!-- three.js and its addons are loaded from the CDN; everything else is local and
@@ -36,10 +38,18 @@
 
 <div id="loader" aria-live="polite">
   <div class="ld-center">
-    <svg class="ld-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="ld-track" cx="60" cy="60" r="54"/><circle class="ld-arc" cx="60" cy="60" r="54"/></svg>
-    <svg class="ld-mark" viewBox="0 0 424 420" aria-hidden="true"><use href="#logo-mark"/></svg>
+    <svg class="ld-mark" viewBox="0 0 423.1 419.0" aria-hidden="true">
+      <defs>
+        <clipPath id="ldClip"><path d="M88 418.6L86.1 419L84.2 418.9L81.6 417.8L80.1 416.6L78.9 415.1L78 413.4L77.4 411.5L76.9 405.6L76.8 367.5L76.6 364.6L75.9 362.9L74.8 361.6L73.1 360.8L60.6 357.6L52.2 354.5L46.7 352L40.6 348.6L35.6 345.3L30.1 341L24.9 336.3L20.7 332L15.8 325.7L12.9 321.6L9.4 315.6L6.4 309.3L4.2 303.7L2.7 298.9L1.2 292.1L0.5 286.1L0.1 276.2L0 101.1L0.4 84.1L1.1 78.1L2.4 71.2L3.9 65.4L5.9 59.8L8.7 53.4L11.4 48L15 42L18.4 37.1L24.9 29.5L32.1 22.5L39.2 17L47.6 11.7L56.6 7.4L65.1 4.3L73.8 2.1L80.7 0.9L85.6 0.4L97.6 0.1L134.7 0L299.7 0L332.8 0.1L341.8 0.3L346.7 0.8L355.6 2.4L366.1 5.5L370.8 7.3L377 10.5L382.2 13.5L386.3 16.3L394 22.7L401 29.8L408.2 39.4L412.3 46.3L416.6 55.3L418.3 60L420 65.7L422 75.5L422.9 85.4L423.1 116.4L422.9 261.5L422.8 278.5L422.5 284.5L422 289.5L420.3 298.3L419 303.1L417 308.8L415 313.4L413.1 316.9L409.5 322.9L405.5 328.6L401 334L397.5 337.5L389.1 344.6L383.3 348.4L374.4 353.1L369 355.5L357.4 358.9L352.6 359.9L344.6 360.9L338.6 361.2L273.6 361L205.6 361.3L172.5 361.6L167.6 362.1L164.9 363.2L162.4 364.8L100.5 410.5L91.5 416.9Z"/></clipPath>
+        <linearGradient id="ldShine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      </defs>
+      <path class="ld-fill" fill="url(#lgBubble)" d="M88 418.6L86.1 419L84.2 418.9L81.6 417.8L80.1 416.6L78.9 415.1L78 413.4L77.4 411.5L76.9 405.6L76.8 367.5L76.6 364.6L75.9 362.9L74.8 361.6L73.1 360.8L60.6 357.6L52.2 354.5L46.7 352L40.6 348.6L35.6 345.3L30.1 341L24.9 336.3L20.7 332L15.8 325.7L12.9 321.6L9.4 315.6L6.4 309.3L4.2 303.7L2.7 298.9L1.2 292.1L0.5 286.1L0.1 276.2L0 101.1L0.4 84.1L1.1 78.1L2.4 71.2L3.9 65.4L5.9 59.8L8.7 53.4L11.4 48L15 42L18.4 37.1L24.9 29.5L32.1 22.5L39.2 17L47.6 11.7L56.6 7.4L65.1 4.3L73.8 2.1L80.7 0.9L85.6 0.4L97.6 0.1L134.7 0L299.7 0L332.8 0.1L341.8 0.3L346.7 0.8L355.6 2.4L366.1 5.5L370.8 7.3L377 10.5L382.2 13.5L386.3 16.3L394 22.7L401 29.8L408.2 39.4L412.3 46.3L416.6 55.3L418.3 60L420 65.7L422 75.5L422.9 85.4L423.1 116.4L422.9 261.5L422.8 278.5L422.5 284.5L422 289.5L420.3 298.3L419 303.1L417 308.8L415 313.4L413.1 316.9L409.5 322.9L405.5 328.6L401 334L397.5 337.5L389.1 344.6L383.3 348.4L374.4 353.1L369 355.5L357.4 358.9L352.6 359.9L344.6 360.9L338.6 361.2L273.6 361L205.6 361.3L172.5 361.6L167.6 362.1L164.9 363.2L162.4 364.8L100.5 410.5L91.5 416.9Z"/>
+      <path class="ld-glyph" fill="#fff" d="M314 302.8L311.1 302.9L309.2 302.5L306.4 301.5L231.8 267.5L174.2 242L167.7 239.5L165.7 239.1L162.8 238.9L158.8 239L157.2 239.5L156.4 240.7L156.5 242.3L177.2 291L178.2 294.8L177.8 297.6L176.8 299.2L175.4 300.5L173.7 301.3L170.8 301.7L143.8 301.7L139.9 301.1L137.4 299.7L135.4 297.5L134.1 294.8L112.6 243.1L111.3 240.6L109.9 239.4L108.1 238.9L93.2 238.6L90.2 238.2L88.3 237.6L85.7 236.1L83.5 234.2L81.7 231.8L80.6 229.1L80 226.2L79.8 222.2L79.7 146.2L80.2 140.2L80.8 138.4L82.1 135.7L84 133.5L86.4 131.7L89.1 130.4L92.9 129.6L160 129.4L162.9 129.3L165.8 128.5L178.4 122.5L212.2 105.1L311.2 52.7L313.9 51.6L316.8 50.9L319.6 51.3L321.3 52.2L323.3 54.3L324.7 56.9L337.3 88.5L337.9 91.3L337.5 94.2L336.6 95.9L334.5 97.9L331.9 99.3L329.1 100.4L256 124.4L171.7 152.9L170 153.6L168.6 154.8L167.9 156.4L167.7 158.3L167.9 169.2L168.6 170.7L169.2 171.2L170 171.5L171.9 171.6L251 160.1L313.3 150.6L343 146.4L346.9 146.1L348.9 146.2L351.6 147.2L353 148.5L354.5 150.9L355.1 153.8L355 200.8L354.5 203.7L353 206.2L351.6 207.5L349 208.7L347 208.9L344.1 208.8L310.2 206L173.7 193.9L169.9 194L168.6 194.9L167.9 196.5L167.6 206.4L167.9 210.3L168.5 211.9L169.1 212.6L170.7 213.5L208 224.8L324.1 258.8L327.8 260.1L329.5 261.1L331.2 263.4L331.8 265.2L331.8 267.1L331 270L319 298.5L317.9 300.1L316.5 301.5Z"/>
+      <path class="ld-stroke" pathLength="1" d="M88 418.6L86.1 419L84.2 418.9L81.6 417.8L80.1 416.6L78.9 415.1L78 413.4L77.4 411.5L76.9 405.6L76.8 367.5L76.6 364.6L75.9 362.9L74.8 361.6L73.1 360.8L60.6 357.6L52.2 354.5L46.7 352L40.6 348.6L35.6 345.3L30.1 341L24.9 336.3L20.7 332L15.8 325.7L12.9 321.6L9.4 315.6L6.4 309.3L4.2 303.7L2.7 298.9L1.2 292.1L0.5 286.1L0.1 276.2L0 101.1L0.4 84.1L1.1 78.1L2.4 71.2L3.9 65.4L5.9 59.8L8.7 53.4L11.4 48L15 42L18.4 37.1L24.9 29.5L32.1 22.5L39.2 17L47.6 11.7L56.6 7.4L65.1 4.3L73.8 2.1L80.7 0.9L85.6 0.4L97.6 0.1L134.7 0L299.7 0L332.8 0.1L341.8 0.3L346.7 0.8L355.6 2.4L366.1 5.5L370.8 7.3L377 10.5L382.2 13.5L386.3 16.3L394 22.7L401 29.8L408.2 39.4L412.3 46.3L416.6 55.3L418.3 60L420 65.7L422 75.5L422.9 85.4L423.1 116.4L422.9 261.5L422.8 278.5L422.5 284.5L422 289.5L420.3 298.3L419 303.1L417 308.8L415 313.4L413.1 316.9L409.5 322.9L405.5 328.6L401 334L397.5 337.5L389.1 344.6L383.3 348.4L374.4 353.1L369 355.5L357.4 358.9L352.6 359.9L344.6 360.9L338.6 361.2L273.6 361L205.6 361.3L172.5 361.6L167.6 362.1L164.9 363.2L162.4 364.8L100.5 410.5L91.5 416.9Z"/>
+      <g clip-path="url(#ldClip)"><rect class="ld-shine" x="-110" y="-30" width="110" height="520" fill="url(#ldShine)"/></g>
+    </svg>
+    <div class="ld-bar" role="progressbar" aria-label="Loading elora" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
   </div>
-  <div class="loader-label" role="progressbar" aria-label="Loading elora" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span>Loading</span><b>0</b></div>
 </div>
 
 <div class="chrome" id="chrome">
@@ -53,14 +63,15 @@
       <em>Marketing Media</em>
     </a>
     <nav class="nav" aria-label="Primary">
-      <a href="#departments" data-go="1">Departments</a>
-      <a href="#insights" data-go="7">Results</a>
-      <a href="#crew" data-go="9">Crew</a>
-      <a href="#contact" data-go="10">Contact</a>
+      <a href="#editing" data-go="1">Editing</a>
+      <a href="#technical" data-go="2">Technical</a>
+      <a href="#marketing" data-go="3">Marketing</a>
+      <a href="#crew" data-go="4">Crew</a>
+      <a href="#contact" data-go="5">Contact</a>
     </nav>
     <div class="right">
       <span class="issue">Vol. 01</span>
-      <a class="pill" href="#contact" data-go="10"><i></i>Start a project</a>
+      <a class="pill" href="#contact" data-go="5"><i></i>Start a project</a>
     </div>
   </header>
 
@@ -68,87 +79,91 @@
   <div class="lockup" id="lockup">
     <h1 class="lk-h1"><svg class="lk-svg" viewBox="0 0 760.0 229.6" role="img" aria-label="elora" id="lkword"><path class="l" fill="url(#lgWord)" fill-rule="evenodd" d="M109.1 229.3L100.1 229.6L91.1 229.4L80.2 228L71.4 226.3L63.7 224L53.5 220L44.6 215.4L37.9 211.1L30.8 205.5L24.3 199.4L19 193.3L13.3 185.2L8.9 177.3L5.4 169L2.7 160.5L0.8 151.7L0 142.7L0 133.7L1 124.8L3 115L5.5 107.4L9 99.1L15 88.7L19.1 83.1L25.1 76.3L32.3 69.4L40.3 63.4L49.6 57.6L56.8 54.1L66.2 50.6L74.8 48.2L83.7 46.5L97.6 45.3L103.6 45.3L116.6 46.3L125.4 47.7L135.1 50.4L144.4 53.9L153.3 58.5L159.2 62.2L166.4 67.7L170.9 71.6L174.4 75.2L179.6 81.3L185.7 90.4L188.2 94.7L190.8 100.1L193.8 107.5L196.4 117.1L198.4 128L199 136.9L198.8 146.9L198.3 149.7L197.8 150.4L196.4 151.2L193.5 151.4L177.5 151.5L65.4 151.6L61.5 151.8L60 152.4L59.5 153.7L59.8 155.5L61 159.3L62.5 163L65.6 168.1L70.2 173.4L75.5 177.9L80.7 181L86.2 183.2L93 184.8L100 185.4L106 185.1L111.9 184L117.6 182.1L122 179.8L126.1 177L130.4 172.9L134.8 167.5L136.4 166.5L137.3 166.3L141.2 166.2L162.2 167.1L190.1 168.7L191.9 169.1L192.9 170.1L193 170.9L192.6 172.6L190.2 178.1L186.2 185L182.1 190.7L177.7 196.1L172.8 201.1L166 207L162 210L156.2 213.9L149.3 217.9L143.9 220.5L138.3 222.8L131.7 225L124.9 226.7L117.1 228.2Z M138.8 119.8L139.1 118.2L138.5 115.4L137.1 111.6L135.3 108L131.4 102.2L128.9 99.1L126.7 97L121.8 93.5L115.5 90.5L108.8 88.5L105.8 88L101.8 87.7L94.8 88L87.9 89.4L84.1 90.7L80.5 92.3L74.5 96L72.1 97.9L69.3 100.7L65 106.2L61.7 112.4L60.7 115.3L60 118.1L60.3 119.7L60.8 120.2L62.4 120.8L64.3 120.9L134.6 120.9L137.5 120.6Z"/><path class="l" fill="url(#lgWord)" fill-rule="evenodd" d="M264.4 0L266.1 0.3L267.6 1.3L268.5 2.8L268.9 4.5L268.9 221.3L268.5 223L267.6 224.5L266.1 225.5L264.4 225.8L216 225.8L214.3 225.5L212.9 224.5L211.9 223L211.5 221.3L211.5 4.5L211.9 2.8L212.9 1.3L214.3 0.3L216 0Z"/><path class="l" fill="url(#lgWord)" fill-rule="evenodd" d="M383.1 229.3L373.1 229.6L363.1 229L355.2 227.9L347.5 225.9L338 222.6L328.9 218.6L322 214.5L313.9 208.7L306.3 202.2L300.8 196.3L294.7 188.5L289.3 180L285.2 172L282.4 164.6L279.9 155.9L278.5 148L278 138L278.4 129L279.8 120.2L281.7 112.4L284.8 103.9L288.7 95.8L292.8 89L297.5 82.5L304.1 75L311.4 68.2L320.3 61.7L327.1 57.5L336.1 53.2L345.5 49.7L353.2 47.5L361.1 46.1L372 45.3L380 45.3L390 46.2L395.9 47.1L400.8 48.2L409.4 50.8L418.6 54.7L426.5 59.1L433.2 63.5L443.1 71.9L448 76.9L454.1 84.8L458.9 92.4L463.5 101.3L466.4 108.7L468.9 118.4L470.3 127.3L470.8 135.3L470.4 144.2L469.2 153.2L467 161.9L464.3 169.4L459.5 179.3L455.4 186.2L449.5 194.2L442.7 201.6L436 207.6L428 213.6L420.3 218.2L412.1 222L402.7 225.4L394 227.6Z M380.8 180.2L384.7 179.3L388.5 178.1L392.2 176.4L395.6 174.5L398.9 172.1L401.9 169.5L404.6 166.5L407 163.4L409.1 159.9L411.2 155.4L413.5 147.8L414.2 143.9L414.6 139.9L414.7 134.9L414.4 130.9L413.5 126L412.2 121.2L410.7 117.4L409 113.8L407 110.4L404.6 107.2L401.9 104.3L398.9 101.6L395.7 99.1L393.2 97.6L389.6 95.9L385.8 94.5L381.9 93.6L378 93L374 92.8L370 93.1L366.1 93.7L362.2 94.7L357.5 96.4L353.9 98.2L350.6 100.4L347.5 102.9L344.7 105.8L342.2 108.9L340 112.2L338.2 115.8L336.7 119.5L335.2 124.3L334.4 128.2L333.7 133.1L333.6 138.1L333.8 142.1L334.7 147L335.7 150.9L336.9 154.7L338.5 158.4L340.5 161.8L343.4 165.9L346.1 168.8L349.1 171.5L352.3 173.9L355.7 176L360.2 178.1L364 179.3L367.9 180.2L371.9 180.6L376.9 180.7Z"/><path class="l" fill="url(#lgWord)" fill-rule="evenodd" d="M534.7 224.8L533.1 225.5L531.2 225.7L485.1 225.8L482.4 225.3L481.7 224.8L480.9 223.3L480.7 220.4L480.8 93.2L480.9 60.1L481.1 51.2L481.7 49.6L482.4 49.1L485.1 48.5L531.1 48.5L533.9 48.8L535.2 49.7L535.7 51.4L535.8 67.4L536 69.1L536.3 69.7L536.7 69.9L537.8 69.3L541.4 64.7L545.7 60.4L551.3 56.2L555.6 53.8L562.1 51.1L569.8 48.9L576.7 47.7L580.7 47.5L582.6 47.6L584.1 48.3L584.6 49L585.1 51.7L585 94.8L584.8 97.7L584.1 99.3L583.5 99.8L581.8 100.3L571.9 100.1L564 101.1L558.2 102.8L552.8 105.3L549.4 107.4L547.1 109.3L543 113.7L539.9 118.8L537.5 125.4L536.5 130.3L535.9 137.3L535.8 220.4L535.5 223.3Z"/><path class="l" fill="url(#lgWord)" fill-rule="evenodd" d="M668.1 228.3L663.1 228.8L657.1 228.9L652.2 228.5L647.2 227.7L640.4 226.2L634.7 224.4L630 222.5L623.7 219.5L618.6 216.5L613.7 213L609 209.2L604.6 205.1L601.2 201.4L596.9 196L590.9 186.7L585.9 176.9L583.4 170.4L581.6 164.7L580.1 158.9L579 153L578 146L577.8 141.1L578.1 131.1L578.8 123.1L579.9 117.2L582 109.5L584.1 102.8L589.1 91.9L593.5 84.1L599.4 76L604.8 70.1L611.6 64.2L618 59.5L625.9 55.1L633.3 52.1L641.9 49.4L649.7 47.9L658.7 47.2L667.7 47.3L675.6 48.3L685.2 51.2L691.5 54.1L697.2 58.1L700.3 60.7L703.8 64.1L705 64.7L705.4 64.5L705.7 63.9L706 62.2L706.1 51.3L706.7 49.7L708.1 48.8L712 48.5L755 48.5L757 48.6L758.7 49.1L759.7 50.3L760 54.1L760 214.2L760 221.2L759.4 223.9L758.3 225.1L755.5 225.6L717.5 225.8L710.5 225.7L708.7 225.4L707.3 224.5L706.6 222.9L706.2 210L705.9 208.4L705.6 207.9L705.1 207.9L704 208.8L700.7 212.4L696.3 216.5L693.2 219L689.8 221.2L684.5 223.9L679.8 225.7L675 227Z M678.4 179.2L685 177L688.6 175.2L691.9 173L695 170.4L697.1 168.3L699.6 165.1L701.7 161.8L703.5 158.2L704.9 154.4L706.9 146.7L707.4 142.7L707.7 136.7L707.1 128.7L706.4 124.8L705 120L702.3 113.5L700.2 110.1L698.5 107.6L695.8 104.6L693.7 102.6L690.5 100.1L687.1 98L684.4 96.7L680.6 95.3L676.8 94.3L673.8 93.8L669.8 93.7L665.8 94L661.9 94.8L657.1 96.3L653.5 97.9L650 99.9L647.6 101.7L644.7 104.4L642.1 107.5L639.8 110.7L637.8 114.2L636.3 117.9L633.9 126.6L633.2 131.6L632.8 135.5L633 140.6L633.6 145.5L634.3 149.5L635.4 153.3L636.9 157L638.7 160.6L640.8 164L643.2 167.2L645.9 170.1L649 172.7L652.3 174.9L655.9 176.8L659.6 178.2L663.5 179.3L667.4 179.9L671.4 180L675.4 179.8Z"/></svg></h1>
     <p class="lk-sub"><s></s>Marketing Media<s></s></p>
-    <p class="lk-line">One studio for everything that grows a brand &mdash; posters, reels, ads, websites, automation and CRM, built to work together.</p>
+    <p class="lk-line">One studio for everything that grows a brand &mdash; <b>editing</b>, <b>technical</b> and <b>marketing</b>, built to work together.</p>
     <div class="lk-cta">
-      <a class="btn solid" href="#departments" data-go="1">Explore the departments<span aria-hidden="true">&darr;</span></a>
-      <a class="btn line" href="#contact" data-go="10">Start a project</a>
+      <a class="btn solid" href="#editing" data-go="1">Explore our work<span aria-hidden="true">&darr;</span></a>
+      <a class="btn line" href="#contact" data-go="5">Start a project</a>
     </div>
     <ul class="lk-tags" aria-label="What we do">
-      <li>Posters</li><li>Reels</li><li>Meta &amp; Google Ads</li><li>Web</li><li>Automations</li><li>CRM</li>
+      <li>Editing</li><li>Technical</li><li>Marketing</li>
     </ul>
   </div>
 
-  <!-- ===== department chapters ===== -->
-  <section class="chapter left" data-i="1" aria-labelledby="t1">
-    <p class="num"><span>01</span><s></s><span>Poster Design</span></p>
-    <h2 class="big" id="t1">Posters</h2>
-    <p class="lede">Scroll-stopping visuals &mdash; posters, banners and social creatives with one clear idea and a sharper hook.</p>
+  <!-- ===== the three departments: one chapter per stage ===== -->
+  <section class="chapter left" data-k="1" data-b="0" data-title="Poster design" aria-labelledby="t1a">
+    <p class="num"><span>01</span><s></s><span>Editing &amp; Design</span></p>
+    <h2 class="big" id="t1a">Posters that <i>stop</i> the scroll.</h2>
+    <p class="lede"><b>Poster design.</b> Banners, posters and social creatives with one clear idea and a sharper hook.</p>
     <dl class="meta">
       <div><dt>Formats</dt><dd>Print &middot; Social &middot; Outdoor</dd></div>
       <div><dt>Craft</dt><dd>Layout &middot; Type &middot; Colour</dd></div>
       <div><dt>You get</dt><dd>Source + exports</dd></div>
     </dl>
   </section>
-
-  <section class="chapter right" data-i="2" aria-labelledby="t2">
-    <p class="num"><span>02</span><s></s><span>Reel Editing</span></p>
-    <h2 class="big" id="t2">Reels</h2>
-    <p class="lede">Short-form edits cut for retention &mdash; hooks, pacing, captions and sound that earn the full watch.</p>
+  <section class="chapter right" data-k="1" data-b="1" data-title="Reel editing" aria-labelledby="t1b">
+    <p class="num"><span>01</span><s></s><span>Editing &amp; Design</span></p>
+    <h2 class="big" id="t1b">Reels cut to keep them <i>watching.</i></h2>
+    <p class="lede"><b>Reel editing.</b> Hooks, pacing, captions and sound that earn the full watch.</p>
     <dl class="meta">
       <div><dt>Formats</dt><dd>Reels &middot; Shorts &middot; Ads</dd></div>
       <div><dt>Craft</dt><dd>Cuts &middot; Captions &middot; Sound</dd></div>
       <div><dt>Ratios</dt><dd>9:16 &middot; 1:1 &middot; 16:9</dd></div>
     </dl>
   </section>
-
-  <section class="chapter left" data-i="3" aria-labelledby="t3">
-    <p class="num"><span>03</span><s></s><span>Meta &amp; Google Ads</span></p>
-    <h2 class="big" id="t3">Ads</h2>
-    <p class="lede">Campaigns on Meta and Google, planned, launched and tuned every week &mdash; spend that works as hard as the creative.</p>
+  <section class="chapter left" data-k="1" data-b="2" data-title="Brand identity" aria-labelledby="t1c">
+    <p class="num"><span>01</span><s></s><span>Editing &amp; Design</span></p>
+    <h2 class="big" id="t1c">A brand people <i>remember.</i></h2>
+    <p class="lede"><b>Brand identity.</b> Logo, palette, type and content calendars that make every post look like you.</p>
     <dl class="meta">
-      <div><dt>Channels</dt><dd>Meta &middot; Google &middot; YouTube</dd></div>
-      <div><dt>Focus</dt><dd>Audience &middot; Creative &middot; Budget</dd></div>
-      <div><dt>Reporting</dt><dd>Weekly, in plain words</dd></div>
+      <div><dt>Identity</dt><dd>Logo &middot; Palette &middot; Type</dd></div>
+      <div><dt>Content</dt><dd>Calendar &middot; Reels &middot; Posts</dd></div>
+      <div><dt>Platforms</dt><dd>Instagram &middot; Facebook</dd></div>
     </dl>
   </section>
-
-  <section class="chapter right" data-i="4" aria-labelledby="t4">
-    <p class="num"><span>04</span><s></s><span>Web Development</span></p>
-    <h2 class="big" id="t4">Web</h2>
-    <p class="lede">Fast, responsive websites and landing pages, built to turn visitors into conversations.</p>
+  <section class="chapter right" data-k="2" data-b="0" data-title="Web development" aria-labelledby="t2a">
+    <p class="num"><span>02</span><s></s><span>Technical</span></p>
+    <h2 class="big" id="t2a">Websites built to <i>convert.</i></h2>
+    <p class="lede"><b>Web development.</b> Fast, responsive sites and landing pages that turn visitors into conversations.</p>
     <dl class="meta">
       <div><dt>Builds</dt><dd>Sites &middot; Stores &middot; Apps</dd></div>
       <div><dt>Focus</dt><dd>Speed &middot; SEO &middot; UX</dd></div>
       <div><dt>Stack</dt><dd>HTML &middot; React &middot; CMS</dd></div>
     </dl>
   </section>
-
-  <section class="chapter left" data-i="5" aria-labelledby="t5">
-    <p class="num"><span>05</span><s></s><span>Automations</span></p>
-    <h2 class="big long" id="t5">Automations</h2>
-    <p class="lede">Workflows that move leads, messages and reports between your tools while you sleep.</p>
+  <section class="chapter left" data-k="2" data-b="1" data-title="Automations" aria-labelledby="t2b">
+    <p class="num"><span>02</span><s></s><span>Technical</span></p>
+    <h2 class="big" id="t2b">Automations that <i>never</i> sleep.</h2>
+    <p class="lede"><b>Automations.</b> Workflows that move leads, messages and reports between your tools while you sleep.</p>
     <dl class="meta">
       <div><dt>Triggers</dt><dd>Forms &middot; Ads &middot; Chats</dd></div>
       <div><dt>Actions</dt><dd>Email &middot; Sheets &middot; CRM</dd></div>
       <div><dt>Runs</dt><dd>Around the clock</dd></div>
     </dl>
   </section>
-
-  <section class="chapter right" data-i="6" aria-labelledby="t6">
-    <p class="num"><span>06</span><s></s><span>CRM Setup</span></p>
-    <h2 class="big" id="t6">CRM</h2>
-    <p class="lede">Every lead captured, tagged and followed up &mdash; one pipeline from first click to closed deal.</p>
+  <section class="chapter right" data-k="2" data-b="2" data-title="CRM setup" aria-labelledby="t2c">
+    <p class="num"><span>02</span><s></s><span>Technical</span></p>
+    <h2 class="big" id="t2c">A CRM that closes the <i>loop.</i></h2>
+    <p class="lede"><b>CRM setup.</b> Every lead captured, tagged and followed up &mdash; one pipeline from first click to closed deal.</p>
     <dl class="meta">
       <div><dt>Pipeline</dt><dd>Leads &middot; Deals &middot; Won</dd></div>
       <div><dt>Follow-up</dt><dd>Reminders &middot; Sequences</dd></div>
       <div><dt>Visibility</dt><dd>Live dashboards</dd></div>
     </dl>
   </section>
-
-  <section class="chapter left" data-i="7" aria-labelledby="t7" id="insights">
-    <p class="num"><span>07</span><s></s><span>Analytics &amp; Reporting</span></p>
-    <h2 class="big" id="t7">Insights</h2>
-    <p class="lede">Dashboards that show what is working &mdash; traffic, leads, cost and revenue on a single screen.</p>
+  <section class="chapter left" data-k="3" data-b="0" data-title="Meta &amp; Google ads" aria-labelledby="t3a">
+    <p class="num"><span>03</span><s></s><span>Marketing</span></p>
+    <h2 class="big" id="t3a">Ads that earn their <i>spend.</i></h2>
+    <p class="lede"><b>Meta &amp; Google ads.</b> Campaigns planned, launched and tuned every week &mdash; spend that works as hard as the creative.</p>
+    <dl class="meta">
+      <div><dt>Channels</dt><dd>Meta &middot; Google &middot; YouTube</dd></div>
+      <div><dt>Focus</dt><dd>Audience &middot; Creative &middot; Budget</dd></div>
+      <div><dt>Reporting</dt><dd>Weekly, in plain words</dd></div>
+    </dl>
+  </section>
+  <section class="chapter right" data-k="3" data-b="1" data-title="Analytics &amp; reporting" aria-labelledby="t3b">
+    <p class="num"><span>03</span><s></s><span>Marketing</span></p>
+    <h2 class="big" id="t3b">Numbers you can <i>act on.</i></h2>
+    <p class="lede"><b>Analytics &amp; reporting.</b> Dashboards that show what is working &mdash; traffic, leads, cost and revenue on a single screen.</p>
     <dl class="meta">
       <div><dt>Tracking</dt><dd>Pixels &middot; Events &middot; UTMs</dd></div>
       <div><dt>Views</dt><dd>Daily &middot; Weekly &middot; Monthly</dd></div>
@@ -156,30 +171,11 @@
     </dl>
   </section>
 
-  <section class="chapter right" data-i="8" aria-labelledby="t8">
-    <p class="num"><span>08</span><s></s><span>Brand &amp; Social</span></p>
-    <h2 class="big" id="t8">Brand</h2>
-    <p class="lede">Identity, content calendars and community &mdash; a brand people recognise, remember and follow.</p>
-    <dl class="meta">
-      <div><dt>Identity</dt><dd>Logo &middot; Palette &middot; Type</dd></div>
-      <div><dt>Content</dt><dd>Calendar &middot; Reels &middot; Posts</dd></div>
-      <div><dt>Platforms</dt><dd>Instagram &middot; LinkedIn &middot; YouTube</dd></div>
-    </dl>
-  </section>
-
-  <!-- ===== persistent index / volume line / scroll cue ===== -->
-  <nav class="index" id="index" aria-label="Departments">
-    <u>01</u><a href="#poster" data-go="1">Poster Design</a>
-    <u>02</u><a href="#reels" data-go="2">Reel Editing</a>
-    <u>03</u><a href="#ads" data-go="3">Meta &amp; Google Ads</a>
-    <u>04</u><a href="#web" data-go="4">Web Development</a>
-    <u>05</u><a href="#automations" data-go="5">Automations</a>
-    <u>06</u><a href="#crm" data-go="6">CRM</a>
-    <u>07</u><a href="#analytics" data-go="7">Analytics</a>
-    <u>08</u><a href="#brand" data-go="8">Brand &amp; Social</a>
-    <u>09</u><a href="#crew" data-go="9">The Crew</a>
+  <!-- ===== the slider on the right ===== -->
+  <nav class="rail" id="rail" aria-label="Sections">
+    <div class="rl-line"><i class="rl-fill"></i><b class="rl-knob"></b></div>
+    <ol class="rl-list"></ol>
   </nav>
-  <div class="vol" id="vol"><b id="volNo">00</b> / 09<span id="volName">Marketing Media</span></div>
   <div class="cue" id="cue">Scroll</div>
 </div>
 
@@ -187,11 +183,12 @@
 <aside id="crew" aria-label="The crew" aria-hidden="true">
   <p class="eyebrow"><s></s>09 &middot; The crew</p>
   <h2>The people behind elora.</h2>
-  <p class="say"><span class="hov">Point at a name for the details &mdash; click to keep them open.</span><span class="tap">Tap a name for the details.</span></p>
+  <p class="say"><span class="hov">Six people, one studio. Point at a name to meet them &mdash; click to keep it open.</span><span class="tap">Six people, one studio. Tap a name to meet them.</span></p>
   <ul class="cr-list" id="crewList"></ul>
   <p class="cr-foot"><span>Follow elora</span>
     <a href="https://www.instagram.com/growwith.elora/" target="_blank" rel="noopener" data-app="ig:growwith.elora">Instagram</a>
     <a href="https://www.facebook.com/profile.php?id=61595658505541" target="_blank" rel="noopener" data-app="fb:61595658505541">Facebook</a>
+    <button type="button" id="crewSnd" class="cr-snd" aria-pressed="true" aria-label="Sound effects">Sound <b>on</b></button>
   </p>
 </aside>
 
@@ -228,7 +225,7 @@
     </form>
 
     <div class="cols">
-      <div><b>Departments</b>Posters &middot; Reels &middot; Ads<br>Web &middot; Automations &middot; CRM</div>
+      <div><b>Departments</b>Editing &amp; Design<br>Technical &middot; Marketing</div>
       <div><b>Write</b><a href="mailto:growwithelora@gmail.com" data-mail>growwithelora@gmail.com</a></div>
       <div><b>Follow</b><a href="https://www.instagram.com/growwith.elora/" target="_blank" rel="noopener" data-app="ig:growwith.elora">Instagram</a> &middot; <a href="https://www.facebook.com/profile.php?id=61595658505541" target="_blank" rel="noopener" data-app="fb:61595658505541">Facebook</a></div>
     </div>
@@ -251,6 +248,7 @@
 <script src="js/st-crm.js"></script>
 <script src="js/st-analytics.js"></script>
 <script src="js/st-brand.js"></script>
+<script src="js/st-services.js"></script>
 <script src="js/st-crew.js"></script>
 <script src="js/st-finale.js"></script>
 <script src="js/links.js"></script>

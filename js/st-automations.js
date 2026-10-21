@@ -1,8 +1,7 @@
-/* Scene 05 — Automations.
+/* Part 05 — Automations.
    Four steps in a row — trigger, filter, action, done — and one blue point that
    runs along them. Each step's outline lights up as it passes. */
-ELORA.add({
-  id: 'automations',
+ELORA.part('automations', {
   cam: { fitW: 7.4, p: [.2, 2.1, 13.8], t: [0, 1.75, 0], fov: 35, lens: [.23, .04, 0, .2], dolly: 1.3, drift: .5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);

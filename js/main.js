@@ -1,8 +1,9 @@
 /* elora — engine.
    One fixed WebGL stage on a quiet paper-coloured set. The page's scroll position is a
    single number (SP, in "screens") that drives everything: the camera glides between
-   stations, each station animates by its own dwell progress, and the DOM chapters
-   assemble and leave in step. Stations are registered by js/st-*.js.
+   stations, a department station is a tour with one stage per beat, each stage animates by
+   its own progress, and the DOM chapters assemble and leave in step. Stations are registered
+   by js/st-*.js.
 
    Built to stay smooth on any device (see js/perf.js):
      - a quality level (0-3) is chosen up front and can step down while running
@@ -25,10 +26,10 @@
   let prog = 0; const bump = (to) => { prog = Math.max(prog, to); L && L.set(prog); };
   let THREE, X = {};
   try {
+    const pRB = import('three/addons/geometries/RoundedBoxGeometry.js'), pBU = import('three/addons/utils/BufferGeometryUtils.js').catch(() => null);
     THREE = await import('three'); bump(.1);
-    const m = await import('three/addons/geometries/RoundedBoxGeometry.js');
-    X.RoundedBoxGeometry = m.RoundedBoxGeometry;
-    try { X.toCreasedNormals = (await import('three/addons/utils/BufferGeometryUtils.js')).toCreasedNormals; } catch (e) { /* flat-shaded logo sides: still fine */ }
+    X.RoundedBoxGeometry = (await pRB).RoundedBoxGeometry;
+    { const bu = await pBU; if (bu) X.toCreasedNormals = bu.toCreasedNormals; }       /* (without it the logo sides are flat-shaded: still fine) */
     window.THREE = THREE;
     bump(.3);
   } catch (e) {
@@ -40,7 +41,7 @@
   try {
     await Promise.race([
       Promise.all(['400 64px "Instrument Serif"', 'italic 400 32px "Instrument Serif"', '500 32px Inter', '600 32px Inter'].map(f => document.fonts.load(f))),
-      new Promise(r => setTimeout(r, 2600))
+      new Promise(r => setTimeout(r, 1500))
     ]);
   } catch (e) { /* system fonts will do */ }
   bump(.36);
@@ -50,14 +51,18 @@
   const ST = E.stations, N = ST.length;
 
   /* ---------------------------------------------------------------- state */
-  const S = { sp: 0, target: 0, vel: 0, t: 0, mx: 0, my: 0, tmx: 0, tmy: 0, reveal: 0, i0: null, drag: 0, dragV: 0, reduced, introPull: 1 };
+  const S = { sp: 0, sp1: 0, target: 0, vel: 0, t: 0, mx: 0, my: 0, tmx: 0, tmy: 0, reveal: 0, i0: null, drag: 0, dragV: 0, reduced, introPull: 1 };
   let glideRaf = 0;
   let VW = innerWidth, VH = innerHeight, PORT = VW <= 820, DPR = 1, res = 1, dead = false;
   const devDPR = Math.min(window.devicePixelRatio || 1, 3);
   const prFor = (l, r) => Math.max(.5, Math.min(devDPR, QL[l].dpr) * r);
 
-  /* ------------------------------------------------------------ timeline */
-  const MOVE = .78, DW = ST.map((s, i) => s.dwell || (i === N - 1 ? 1.3 : 1.0));
+  /* ------------------------------------------------------------ timeline
+     Screens of scrolling: pause on a station (a department pauses once per beat), then glide to
+     the next. A beat is held for HOLD of its length, then the camera flies on to the next stage. */
+  const MOVE = .5, DWS = .76, HOLD = .55, STAGE = 9;
+  const NB = ST.map(s => s.camBeats ? s.camBeats.length : 1);
+  const DW = ST.map((s, i) => (s.dwell || (i === N - 1 ? 1.3 : 1.0)) * DWS);
   const home = []; { let a = 0; for (let k = 0; k < N; k++) { home[k] = a; a += DW[k] + MOVE; } }
   const TOTAL = home[N - 1] + DW[N - 1];
   const quint = q => q * q * q * (q * (q * 6 - 15) + 10);
@@ -123,131 +128,172 @@
   const key = new THREE.DirectionalLight(0xffffff, 1.0); scene.add(key, key.target);
 
   /* -------------------------------------------------------------- stations */
-  const ZS = [0, -1.5, 1.2, -1.8, .8, -1.5, 1.2, -1.8, .6, -1.2, 0];
+  const ZS = [0, -1.5, 1.2, -1.8, -1.2, 0];
+  /* where each station stands: departments are wider (their stages stand in a row), so they get more room */
+  const OX = []; { let x = 0; for (let k = 0; k < N; k++) { if (k) x += (NB[k - 1] - 1) / 2 * STAGE + 18 + (NB[k] - 1) / 2 * STAGE; OX[k] = x; } }
   const R = [], buildMs = [];
   const ctx = { THREE, K, S, renderer, scene, camera, reduced, get PORT() { return PORT; } };
   for (let k = 0; k < N; k++) {
     const def = ST[k];
-    const o = [k * 18, 0, ZS[k % ZS.length]];
+    const o = [OX[k], 0, ZS[k % ZS.length]];
     const root = new THREE.Group(); root.position.set(o[0], 0, o[2]); scene.add(root);
     let built; const tb = performance.now();
     try { built = def.build(ctx); } catch (e) { console.error('elora: scene failed', def.id, e); built = { group: new THREE.Group(), update() { } }; }
     root.add(built.group); buildMs.push(Math.round(performance.now() - tb));
     root.visible = false;
     const cam = def.cam;
+    const beats = (def.camBeats || [cam]).map(b => ({
+      P: [o[0] + b.p[0], b.p[1], o[2] + b.p[2]], T: [o[0] + b.t[0], b.t[1], o[2] + b.t[2]],
+      lens: (b.lens || [0, 0, 0, 0]).slice(), fitW: b.fitW || 8.5, fov: b.fov || cam.fov || 32
+    }));
     R.push({
-      def, k, o, root, built,
-      P: [o[0] + cam.p[0], cam.p[1], o[2] + cam.p[2]], T: [o[0] + cam.t[0], cam.t[1], o[2] + cam.t[2]],
-      lens: cam.lens || [0, 0, 0, 0], fitW: cam.fitW || 8.5, fov: cam.fov || 32, dolly: (cam.dolly ?? 1.4) * .7, drift: cam.drift ?? .5, orbit: cam.orbit ?? 1, lean: cam.lean ?? 1
+      def, k, o, root, built, beats, P: beats[0].P, T: beats[0].T, fov: beats[0].fov,
+      dolly: (cam.dolly ?? 1.4) * .7, drift: cam.drift ?? .5, orbit: cam.orbit ?? 1, lean: cam.lean ?? 1
     });
     bump(.4 + .5 * (k + 1) / N);
-    await frameWait();
+    if (k === 0 || k % 2 === 0) await frameWait();
   }
 
   /* ------------------------------------------------------------------ UI */
-  function splitLetters(el) {
-    const txt = el.textContent; el.setAttribute('aria-label', txt); el.textContent = '';
-    const out = [];
-    txt.split(' ').forEach((word, wi, arr) => {
-      const w = document.createElement('span'); w.className = 'w'; w.setAttribute('aria-hidden', 'true');
-      [...word].forEach(ch => { const s = document.createElement('span'); s.className = 'l'; s.textContent = ch; w.appendChild(s); out.push(s); });
-      el.appendChild(w); if (wi < arr.length - 1) el.appendChild(document.createTextNode(' '));
-    });
-    return out;
+  /* a headline becomes words, each in a mask, so it can rise out of a line (the classic reveal) */
+  function splitWords(el) {
+    el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+    const out = [], frag = document.createDocumentFragment();
+    const wrap = (txt, tag) => {
+      txt.split(/(\s+)/).forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
+        const m = document.createElement('span'), w = document.createElement('span'); m.className = 'wm'; w.className = 'wi'; m.setAttribute('aria-hidden', 'true');
+        if (tag) { const i = document.createElement(tag); i.textContent = part; w.appendChild(i); } else w.textContent = part;
+        m.appendChild(w); frag.appendChild(m); out.push(w);
+      });
+    };
+    [...el.childNodes].forEach(n => { if (n.nodeType === 3) wrap(n.textContent, null); else if (n.nodeType === 1) wrap(n.textContent, n.tagName.toLowerCase()); });
+    el.textContent = ''; el.appendChild(frag); return out;
   }
   const chapters = $$('.chapter').map(el => {
-    const big = $('.big', el), letters = splitLetters(big);
-    return { el, big, k: +el.dataset.i, side: el.classList.contains('right') ? 'right' : 'left', letters, parts: [$('.num', el), $('.lede', el), $('.meta', el)] };
+    const words = splitWords($('.big', el));
+    return { el, k: +el.dataset.k, b: +el.dataset.b, side: el.classList.contains('right') ? 'right' : 'left', words, parts: [$('.num', el), $('.lede', el), $('.meta', el)].filter(Boolean) };
   });
-  const lockup = $('#lockup'), lkLetters = $$('#lkword .l');
-  const bar = $('#bar'), indexEl = $('#index'), vol = $('#vol'), cue = $('#cue'), scrim = $('#scrim'), contact = $('#contact'), crew = $('#crew');
+  /* each chapter owns a window of scroll: it rises in as the camera arrives and lifts away as it leaves */
+  chapters.forEach(c => {
+    const n = NB[c.k], seg = DW[c.k] / n, base = home[c.k] + c.b * seg, last = c.b === n - 1;
+    c.in0 = c.b === 0 ? home[c.k] - MOVE * .5 : base - .24 * seg;
+    c.in1 = c.b === 0 ? home[c.k] + .12 * seg : base + .12 * seg;
+    c.out0 = last ? home[c.k] + DW[c.k] : base + .58 * seg;
+    c.out1 = last ? home[c.k] + DW[c.k] + MOVE * .5 : base + .86 * seg;
+    /* the stage sits on the side opposite the words */
+    const bt = R[c.k] && R[c.k].beats[c.b];
+    if (bt) { const m = Math.abs(bt.lens[0]); bt.lens[0] = c.side === 'left' ? m : -m; }
+  });
+  const lockup = $('#lockup'), lkLetters = $$('#lkword .l'), lkH1 = $('.lk-h1', lockup), lkSub = $('.lk-sub', lockup), lkSubLines = $$('s', lkSub);
+  const barItems = [$('.brand', $('#bar')), ...$$('.nav a', $('#bar')), $('.right', $('#bar'))].filter(Boolean);
+  const bar = $('#bar'), rail = $('#rail'), cue = $('#cue'), scrim = $('#scrim'), contact = $('#contact'), crew = $('#crew');
   const CREW_I = ST.findIndex(s => s.id === 'crew');
-  const idxLinks = $$('a', indexEl), idxNums = $$('u', indexEl);
-  const volNo = $('#volNo'), volName = $('#volName');
-  const NAMES = ['Marketing Media', 'Poster Design', 'Reel Editing', 'Meta & Google Ads', 'Web Development', 'Automations', 'CRM Setup', 'Analytics', 'Brand & Social', 'The Crew', 'Start a project'];
 
-  function fit() {
-    chapters.forEach(c => {
-      c.big.style.fontSize = '';
-      const max = PORT ? VW - 40 : VW * .44;
-      const w = c.big.scrollWidth; if (w > max) c.big.style.fontSize = (parseFloat(getComputedStyle(c.big).fontSize) * max / w) + 'px';
-    });
-  }
+  /* the slider on the right: where you are in the story, and a way to jump */
+  const LABEL = { hero: 'Intro', editing: 'Editing', technical: 'Technical', marketing: 'Marketing', crew: 'The crew', finale: 'Contact' };
+  const railLine = $('.rl-line', rail), railFill = $('.rl-fill', rail), railKnob = $('.rl-knob', rail), railList = $('.rl-list', rail);
+  const railItems = ST.map((def, k) => {
+    const li = document.createElement('li'), a = document.createElement('a');
+    li.style.top = (home[k] / TOTAL * 100).toFixed(2) + '%';
+    a.href = '#' + def.id; a.dataset.go = k; a.setAttribute('aria-label', LABEL[def.id] || def.id);
+    a.innerHTML = '<span>' + (LABEL[def.id] || def.id) + '</span><i></i>';
+    li.appendChild(a); railList.appendChild(li);
+    for (let j = 1; j < NB[k]; j++) {                          /* a small tick for every stage inside a department */
+      const t = document.createElement('li'); t.className = 'tick'; t.style.top = ((home[k] + DW[k] * j / NB[k]) / TOTAL * 100).toFixed(2) + '%'; railList.appendChild(t);
+    }
+    return a;
+  });
+  let railH = 1;
+  /* The crew list is pinned by its top edge, so opening a name only ever pushes the names below it
+     down; nothing above moves. Its top is where a fully closed list would sit centred. */
+  const measureRail = () => {
+    railH = railLine.offsetHeight || 1;
+    if (crew) {
+      let h = crew.offsetHeight; crew.querySelectorAll('.cr.open .cr-d').forEach(d => { h -= d.offsetHeight; });
+      const top = PORT ? Math.max(72, VH - 160 - h) : Math.max(84, Math.round((VH - h) / 2));
+      crew.style.setProperty('--crew-top', top + 'px');
+    }
+  };
 
   /* cache writes so a frame costs only what changed */
   const setO = (el, v) => { const s = v.toFixed(3); if (el._o !== s) { el.style.opacity = s; el._o = s; } };
   const setT = (el, v) => { if (el._t !== v) { el.style.transform = v; el._t = v; } };
-  const setF = (el, v) => { if (el._f !== v) { el.style.filter = v; el._f = v; } };
   const setVis = (el, v) => { if (el._v !== v) { el.style.visibility = v; el._v = v; } };
-
-  function titleLetters(list, inn, out, dir, svg) {
-    const n = list.length, blur = lv >= 2 && !svg;
-    for (let j = 0; j < n; j++) {
-      const l = list[j];
-      const a = K.clamp01(inn * 1.9 - (j / n) * .9);
-      const b = K.clamp01(out * 1.7 - ((dir > 0 ? j : n - 1 - j) / n) * .7);
-      setO(l, a * (1 - b));
-      if (a < 1 || b > 0) {
-        const e = 1 - K.eo(a), rise = e * .3 - b * .14;
-        setT(l, svg ? `translate3d(${(b * 18 * dir).toFixed(1)}px,${(rise * 40).toFixed(1)}%,0)`
-          : `translate3d(${(b * 22 * dir).toFixed(1)}px,${rise.toFixed(3)}em,0)`);
-        if (blur) { const bl = e * 8 + b * 6; setF(l, bl > .2 ? `blur(${bl.toFixed(1)}px)` : 'none'); }
-      } else { setT(l, 'none'); if (blur) setF(l, 'none'); }
-    }
-  }
+  const rise = q => 1 - Math.pow(1 - q, 4);                    /* ease-out quart: quick start, long soft landing */
 
   let finaleA = 0, crewA = 0;
   function updateUI(T) {
     const rev = S.reveal;
-    const chromeA = K.ramp(rev, .45, 1);
-    setO(bar, chromeA); setO(indexEl, chromeA * (1 - Math.max(finaleA, crewA)));
-    setO(vol, chromeA); setO(cue, chromeA * (T.i === 0 ? 1 - K.ramp(T.f, 0, .3) : 0) * (S.sp < .35 ? 1 : 0));
-    /* hero lockup */
+    const chromeA = K.ramp(rev, .2, .7);
+    setO(bar, chromeA); setO(rail, chromeA * (1 - (PORT ? Math.max(finaleA, crewA) : 0)));
+    setO(cue, chromeA * (T.i === 0 ? 1 - K.ramp(T.f, 0, .3) : 0) * (S.sp < .35 ? 1 : 0));
+    /* the top bar settles in piece by piece: brand, each link, then the button */
+    for (let i = 0; i < barItems.length; i++) {
+      const a = K.ramp(rev, .04 + i * .05, .5 + i * .05), it = barItems[i];
+      setO(it, a); setT(it, a >= 1 ? 'none' : `translate3d(0,${((1 - rise(a)) * -16).toFixed(1)}px,0)`);
+    }
+    /* the landing page. Opening: the wordmark rises out of its own baseline, the line under it
+       draws out, the small caps open up, the paragraph and buttons float up. Scrolling away: the
+       parts drift up at different speeds (depth) and fade, while the 3D logo keeps turning. */
     {
-      const inn = K.ramp(rev, .2, .95), out = T.i === 0 ? K.ramp(T.f, 0, .45) : 1;
+      const hs = T.i === 0 ? T.dw * .35 + T.f * .65 : 1;                  /* how far the landing page has been scrolled, 0 … 1 */
+      const inn = K.ramp(rev, .1, .95), out = T.i === 0 ? K.ramp(hs, .3, .8) : 1;
       const o = inn * (1 - out);
       setVis(lockup, o > .002 ? 'visible' : 'hidden');
       if (o > .002) {
         setO(lockup, 1);
-        titleLetters(lkLetters, inn, out, -1, true);
+        setT(lkH1, `translate3d(0,${(-hs * 46).toFixed(1)}px,0)`);
+        for (let j = 0, n = lkLetters.length; j < n; j++) {
+          const a = K.ramp(inn, j * .09, j * .09 + .62), l = lkLetters[j];
+          setO(l, 1 - out);
+          setT(l, a >= 1 && out <= 0 ? 'none' : `translate3d(0,${((1 - rise(a)) * 112 - out * 22).toFixed(1)}%,0)`);
+        }
         for (let i = 0, n = lockup.children.length, ix = 0; i < n; i++) {
           const el = lockup.children[i]; if (el.classList.contains('lk-h1')) continue;
-          const a = K.ramp(inn, .35 + ix * .08, .9 + ix * .02) * (1 - out); ix++;
-          setO(el, a); setT(el, `translate3d(0,${((1 - K.eo(K.ramp(inn, .35 + (ix - 1) * .08, .9))) * 18).toFixed(1)}px,0)`);
+          const a0 = K.ramp(inn, .42 + ix * .08, .96), a = a0 * (1 - out);
+          setO(el, a); setT(el, `translate3d(0,${((1 - rise(a0)) * 24 - hs * (60 + ix * 22)).toFixed(1)}px,0)`);
+          if (el === lkSub) {
+            const ls = (.86 - .44 * rise(a0)).toFixed(3) + 'em'; if (el._ls !== ls) { el.style.letterSpacing = ls; el._ls = ls; }
+            for (let q = 0; q < lkSubLines.length; q++) setT(lkSubLines[q], `scaleX(${rise(K.ramp(a0, .1, 1)).toFixed(3)})`);
+          }
+          ix++;
         }
       }
     }
     /* department chapters */
     let scr = 0, side = 'left';
-    chapters.forEach(c => {
-      const k = c.k;
-      const arr = T.i === k - 1 ? K.ramp(T.f, .55, 1) : (T.i >= k ? 1 : 0);
-      const ext = T.i === k ? K.ramp(T.f, 0, .42) : (T.i > k ? 1 : 0);
+    const sp = S.sp;
+    for (let ci = 0; ci < chapters.length; ci++) {
+      const c = chapters[ci];
+      const arr = K.ramp(sp, c.in0, c.in1), ext = K.ramp(sp, c.out0, c.out1);
       const on = arr > .001 && ext < .999;
       setVis(c.el, on ? 'visible' : 'hidden');
-      if (!on) return;
-      setO(c.el, 1);
-      const dir = c.side === 'right' ? 1 : -1;
-      titleLetters(c.letters, arr, ext, dir, false);
-      c.parts.forEach((p, i) => {
-        const a = K.ramp(arr, .25 + i * .14, .75 + i * .12) * (1 - K.ramp(ext, 0, .55));
-        setO(p, a); setT(p, `translate3d(${(dir * (1 - a) * -14).toFixed(1)}px,${((1 - K.eo(a)) * 16).toFixed(1)}px,0)`);
-      });
+      if (!on) continue;
+      const drift = K.clamp01((sp - c.in1) / Math.max(.01, c.out0 - c.in1));       /* a slow upward drift while the chapter is on screen: nothing ever sits dead still */
+      setO(c.el, 1 - ext); setT(c.el, `translate3d(0,${(-ext * 26 - drift * 14).toFixed(1)}px,0)`);
+      for (let j = 0, n = c.words.length; j < n; j++) {
+        const a = K.ramp(arr, j * .1, j * .1 + .62);
+        setT(c.words[j], a >= 1 ? 'none' : `translate3d(0,${((1 - rise(a)) * 110).toFixed(1)}%,0)`);
+      }
+      for (let i = 0; i < c.parts.length; i++) {
+        const p = c.parts[i], a = K.ramp(arr, .12 + i * .2, .62 + i * .22);
+        setO(p, a); setT(p, a >= 1 ? 'none' : `translate3d(0,${((1 - rise(a)) * 20).toFixed(1)}px,0)`);
+      }
       const v = arr * (1 - ext); if (v > scr) { scr = v; side = c.side; }
-    });
-    setO(scrim, scr); setVis(scrim, scr > .003 ? 'visible' : 'hidden'); if (scrim.dataset.side !== side) scrim.dataset.side = side;
-    /* index + volume line */
-    const cur = T.f > .5 ? T.i + 1 : T.i;
-    if (cur !== updateUI.cur) {
-      updateUI.cur = cur;
-      idxLinks.forEach((a, n) => { const on = n + 1 === cur; a.classList.toggle('on', on); idxNums[n].classList.toggle('on', on); a.style.opacity = on ? 1 : .45; idxNums[n].style.opacity = on ? 1 : ''; });
-      volName.textContent = NAMES[Math.min(cur, NAMES.length - 1)]; volNo.textContent = String(Math.min(cur, 9)).padStart(2, '0');
     }
+    setO(scrim, scr); setVis(scrim, scr > .003 ? 'visible' : 'hidden'); if (scrim.dataset.side !== side) scrim.dataset.side = side;
+    /* the slider */
+    const prog = TOTAL > 0 ? sp / TOTAL : 0;
+    setT(railFill, `scaleY(${prog.toFixed(4)})`); setT(railKnob, `translate3d(0,${(prog * railH).toFixed(1)}px,0)`);
+    const cur = T.f > .5 ? T.i + 1 : T.i;
+    if (cur !== updateUI.cur) { updateUI.cur = cur; railItems.forEach((a, n) => a.parentNode.classList.toggle('on', n === cur)); }
     /* crew panel */
     if (crew) {
       const a = crewA;
       setVis(crew, a > .01 ? 'visible' : 'hidden'); setO(crew, K.ramp(a, .2, 1));
-      setT(crew, PORT ? `translate3d(0,${((1 - a) * 24).toFixed(1)}px,0)` : `translate3d(${((1 - a) * 40).toFixed(1)}px,-48%,0)`);
+      setT(crew, PORT ? `translate3d(0,${((1 - a) * 24).toFixed(1)}px,0)` : `translate3d(${((1 - a) * 40).toFixed(1)}px,0,0)`);
       const on = a > .75; if (crew.classList.contains('on') !== on) { crew.classList.toggle('on', on); crew.setAttribute('aria-hidden', on ? 'false' : 'true'); }
     }
     /* contact panel */
@@ -259,6 +305,18 @@
 
   /* --------------------------------------------------------------- camera */
   const _p = new Vector3(), _t = new Vector3(), _push = new Vector3(), _orb = new Vector3();
+  const mkKf = () => ({ P: [0, 0, 0], T: [0, 0, 0], lens: [0, 0, 0, 0], fitW: 0, fov: 0 });
+  const _kfA = mkKf(), _kfB = mkKf();
+  /* where the camera stands inside a station at dwell progress dw (a department flies stage to stage) */
+  function kfAt(r, dw, o) {
+    const bs = r.beats, n = bs.length; let j = 0, m = 0;
+    if (n > 1) { const b = Math.min(n - 1e-6, dw * n); j = b | 0; m = j < n - 1 ? K.sm(K.ramp(b - j, HOLD, 1)) : 0; }
+    const a = bs[j], c = bs[j + 1 < n ? j + 1 : j];
+    for (let i = 0; i < 3; i++) { o.P[i] = a.P[i] + (c.P[i] - a.P[i]) * m; o.T[i] = a.T[i] + (c.T[i] - a.T[i]) * m; }
+    for (let i = 0; i < 4; i++) o.lens[i] = a.lens[i] + (c.lens[i] - a.lens[i]) * m;
+    o.fitW = a.fitW + (c.fitW - a.fitW) * m; o.fov = a.fov + (c.fov - a.fov) * m;
+    return o;
+  }
   const approachOf = (k, sp) => {
     const a = k === 0 ? 0 : home[k] - MOVE * .98, x = K.clamp01((sp - a) / (home[k] + DW[k] - a));
     return 2 * x * x - x * x * x;
@@ -275,21 +333,23 @@
   }
   function aimCamera(T) {
     const A = R[T.i], B = R[Math.min(N - 1, T.i + 1)], fe = T.fe;
-    _p.set(A.P[0] + (B.P[0] - A.P[0]) * fe, A.P[1] + (B.P[1] - A.P[1]) * fe, A.P[2] + (B.P[2] - A.P[2]) * fe);
-    _t.set(A.T[0] + (B.T[0] - A.T[0]) * fe, A.T[1] + (B.T[1] - A.T[1]) * fe, A.T[2] + (B.T[2] - A.T[2]) * fe);
+    const a = kfAt(A, T.dw, _kfA), b = fe > 0 && B !== A ? kfAt(B, 0, _kfB) : a;
+    _p.set(a.P[0] + (b.P[0] - a.P[0]) * fe, a.P[1] + (b.P[1] - a.P[1]) * fe, a.P[2] + (b.P[2] - a.P[2]) * fe);
+    _t.set(a.T[0] + (b.T[0] - a.T[0]) * fe, a.T[1] + (b.T[1] - a.T[1]) * fe, a.T[2] + (b.T[2] - a.T[2]) * fe);
     const arc = Math.sin(Math.PI * fe);
     _p.z += 1.6 * arc; _p.y += .3 * arc;
     const aA = approachOf(A.k, S.sp), aB = approachOf(B.k, S.sp);
-    applyApproach(A, aA, 1 - fe);
+    applyApproach(A, aA * (A.beats.length > 1 ? .4 : 1), 1 - fe);
     if (B !== A) applyApproach(B, aB, fe);
     if (S.introPull > 0) { _push.set(A.T[0] - A.P[0], A.T[1] - A.P[1], A.T[2] - A.P[2]).normalize(); _p.addScaledVector(_push, -2.2 * S.introPull); _p.y += .2 * S.introPull; }
+    const fov = a.fov + (b.fov - a.fov) * fe;
     /* a portrait screen sees a narrow slice of the scene: stand back until the subject fits */
     { const asp = VW / VH; let k = 1;
       if (asp < 1.15) {                                              /* back off just far enough for this scene's width (fitW) to fit */
-        const vw = 2 * _p.distanceTo(_t) * Math.tan(K.lerp(A.fov, B.fov, fe) * Math.PI / 360) * asp;
-        k = Math.min(2.5, Math.max(1.3, K.lerp(A.fitW, B.fitW, fe) / vw));      /* never closer than 1.3x: the type sits under the scene */
-        if (k > 1) { _orb.subVectors(_p, _t); _p.copy(_t).addScaledVector(_orb, k); }
-      }
+        const vw = 2 * _p.distanceTo(_t) * Math.tan(fov * Math.PI / 360) * asp;
+        k = Math.min(2.5, Math.max(1.3, (a.fitW + (b.fitW - a.fitW) * fe) / vw));      /* never closer than 1.3x: the type sits under the scene */
+      } else if (asp < 1.7) k = Math.min(1.35, 1.7 / asp);           /* a squarer window: ease back so the stage never runs into the words */
+      if (k > 1) { _orb.subVectors(_p, _t); _p.copy(_t).addScaledVector(_orb, k); }
       scene.fog.density = .034 / k; }                                /* the fog thins as the camera backs off */
     const sw = reduced ? 0 : S.t;
     const lean = Math.max(.4, Math.min(1, _p.distanceTo(_t) / 7.2)) * (A.lean * (1 - fe) + B.lean * fe);
@@ -298,10 +358,10 @@
     _t.x += S.mx * .1 * lean;
     camera.position.copy(_p); camera.lookAt(_t);
     camera.rotation.z = S.mx * .004;
-    camera.fov = K.lerp(A.fov, B.fov, fe);
+    camera.fov = fov;
     const o = PORT ? 2 : 0;
-    const lx = K.lerp(A.lens[o] * (1 + .1 * aA), B.lens[o] * (1 + .1 * aB), fe);
-    const ly = K.lerp(A.lens[o + 1], B.lens[o + 1], fe);
+    const lx = (a.lens[o] * (1 + .1 * aA)) * (1 - fe) + (b.lens[o] * (1 + .1 * aB)) * fe;
+    const ly = a.lens[o + 1] + (b.lens[o + 1] - a.lens[o + 1]) * fe;
     camera.setViewOffset(VW, VH, -lx * VW, ly * VH, VW, VH);
     camera.updateProjectionMatrix();
   }
@@ -309,12 +369,14 @@
   /* ------------------------------------------------------------- scrolling */
   const track = $('#track');
   function sizeTrack() { track.style.height = Math.round(TOTAL * VH + VH) + 'px'; }
-  function glideTo(k, dwAt = .55) {
+  /* a click on the slider or the menu lands on the first stage of that station */
+  const landing = k => NB[k] > 1 ? .26 / NB[k] : (k === 0 ? 0 : .55);
+  function glideTo(k, dwAt) {
     const kk = Math.max(0, Math.min(N - 1, k));
-    const y = Math.round((home[kk] + DW[kk] * (kk === 0 ? 0 : dwAt)) * VH);
+    const y = Math.round((home[kk] + DW[kk] * (dwAt ?? landing(kk))) * VH);
     cancelAnimationFrame(glideRaf);
     const y0 = scrollY, dist = y - y0; if (Math.abs(dist) < 4) return;
-    const dur = reduced ? 1 : Math.min(3000, 900 + Math.abs(dist) / VH * 150), t0 = performance.now();
+    const dur = reduced ? 1 : Math.min(2000, 700 + Math.abs(dist) / VH * 95), t0 = performance.now();
     const step = now => {
       const u = Math.min(1, (now - t0) / dur), e = u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
       scrollTo(0, y0 + dist * e);
@@ -363,35 +425,38 @@
     VW = innerWidth; VH = innerHeight; PORT = VW <= 820;
     camera.aspect = VW / VH;
     renderer.setPixelRatio(DPR); renderer.setSize(VW, VH, false);
-    sizeTrack(); fit();
+    sizeTrack(); measureRail();
     if (S.i0 !== null && prevVH !== VH && S.lockSp === undefined) scrollTo(0, keep * VH);   /* keep the same moment of the story */
   }
   addEventListener('resize', resize);
   applyLevel(lv, 1);
-  sizeTrack(); fit();
-  document.fonts && document.fonts.ready.then(fit);
+  sizeTrack(); measureRail();
+  document.fonts && document.fonts.ready.then(measureRail);
 
   /* Watch the frame time and keep the page feeling smooth, in this order of preference:
-       1. a phone that cannot hold 60 fps settles at a steady 30 (a wobbling 45 looks worse than a calm 30)
-       2. fewer pixels (the edges stay anti-aliased)
+       1. fewer pixels (the edges stay anti-aliased)
+       2. a phone that cannot hold 60 fps settles at a steady 30 (a wobbling 45 looks worse than a calm 30)
        3. a lighter quality level, and in the end the light page
      After a long calm stretch the resolution is given back, but never above a ceiling that already failed once. */
   let ema = 16, slow = 0, cool = 0, calm = 0, resMax = 1, upAt = -1e9;
-  function adapt(ms, now) {
-    if (S.reveal < 1 || S.t < 2.5 || ms > 120) return;
+  let wasIdle = false;
+  function adapt(ms, now, idle) {
+    if (S.t < 1.2 || ms > 120) return;
+    if (idle) { wasIdle = true; return; }                                /* (idle frames are slow on purpose) */
+    if (wasIdle) { wasIdle = false; ema = 16; slow = 0; }
     if (cool > 0) { cool -= ms; return; }
     ema += (ms - ema) * .1;
     const budget = minMs >= 30 ? 40 : 21;
     if (ema > budget) slow += ms; else slow = Math.max(0, slow - ms * .6);
-    calm = ema < budget * .66 && minMs < 30 ? calm + ms : 0;
-    if (slow > 1200) {
-      slow = 0; calm = 0; ema = 16; cool = 2000;
+    calm = ema < budget * .86 && minMs < 30 ? calm + ms : 0;
+    if (slow > 800) {
+      slow = 0; calm = 0; ema = 16; cool = 1200;
       const bumped = now - upAt < 14000;
-      if (P.touch && minMs < 30) { capMs = 32; minMs = Math.max(minMs, 32); }
-      else if (res > .76) applyLevel(lv, Math.max(.7, res - .15));       /* first just fewer pixels */
-      else if (lv > 0) applyLevel(lv - 1, 1);                            /* then a lighter level */
+      if (res > .76) applyLevel(lv, Math.max(.72, +(res - .14).toFixed(2)));        /* first just fewer pixels */
+      else if (P.touch && minMs < 30) { capMs = 32; minMs = Math.max(minMs, 32); }  /* then a steady 30 fps */
+      else if (lv > 0) applyLevel(lv - 1, 1);                                       /* then a lighter level */
       else if (res > .6) applyLevel(0, .6);
-      else E.enterLite('performance');                                   /* nothing left to give */
+      else E.enterLite('performance');                                              /* nothing left to give */
       if (bumped) resMax = res;
     } else if (calm > 9000 && res < resMax) {
       calm = 0; upAt = now; cool = 1500;
@@ -408,28 +473,44 @@
   R.forEach((r, i) => r.root.visible = i === 0);
   bump(.97);
   await frameWait();
+  /* A short speed test while the loader is still up: ~10 frames of the hero at the chosen quality.
+     A device that cannot hold 60 fps starts at fewer pixels instead of stuttering first. */
+  if (!document.hidden) {
+    const ts = []; let pv = performance.now();
+    for (let i = 0; i < 10; i++) { renderer.render(scene, camera); await frameWait(); const n = performance.now(); ts.push(n - pv); pv = n; }
+    const run = ts.slice(3).sort((a, b) => a - b), med = run[run.length >> 1], fast = run[0];
+    if (med < 100) {
+      if (fast > 28) { if (P.touch) { capMs = 32; applyLevel(lv, res); } }                       /* the screen itself runs at 30 Hz (power saving) */
+      else if (med > 19) applyLevel(lv, Math.max(.6, Math.min(1, +Math.sqrt(17 / med).toFixed(2))));
+    }
+  }
 
   /* ------------------------------------------------------------ frame loop */
   let last = performance.now(), lastRender = last, spPrev = 0;
   const U = { S, cam: camera };      /* one update packet, reused every frame (no garbage for the collector) */
+  const REVEAL_S = reduced ? .8 : 2.3;
   const frame = now => {
     if (dead) return;
     requestAnimationFrame(frame);
-    if (minMs && now - lastRender < minMs - 1.5) return;          /* frame cap: phones, 120 Hz screens */
+    const idle = P.touch && lv === 0 && !dragging && S.vel < .004 && Math.abs(S.target - S.sp) < .0015 && S.reveal >= 1;
+    const gate = idle ? Math.max(minMs, 32) : minMs;
+    if (gate && now - lastRender < gate - 1.5) return;            /* frame cap: phones, 120 Hz screens */
     const ms = now - lastRender; lastRender = now;
     const dt = Math.min(.05, Math.max(.0005, (now - last) / 1000)); last = now; S.t += dt;
-    adapt(ms, now);
+    adapt(ms, now, idle);
 
-    /* scroll -> progress */
+    /* scroll -> progress. Two soft stages in a row: the story eases into motion and eases to a stop
+       (momentum), instead of snapping to the finger */
     S.target = S.lockSp ?? Math.max(0, Math.min(TOTAL, scrollY / VH));
-    S.sp += (S.target - S.sp) * (1 - Math.exp(-dt * (reduced ? 14 : 6.2)));
-    if (Math.abs(S.target - S.sp) < .0004) S.sp = S.target;
+    const kf = 1 - Math.exp(-dt * (reduced ? 14 : 10));
+    S.sp1 += (S.target - S.sp1) * kf; S.sp += (S.sp1 - S.sp) * kf;
+    if (Math.abs(S.target - S.sp) < .0004 && Math.abs(S.target - S.sp1) < .0004) S.sp = S.sp1 = S.target;
     const T = travel(S.sp);
     const vNow = Math.abs(S.sp - spPrev) / dt; spPrev = S.sp;
     S.vel += (Math.min(1, vNow / 5.5) - S.vel) * (1 - Math.exp(-dt * 8));
 
     /* intro */
-    if (S.i0 !== null) S.reveal = Math.min(1, (now - S.i0) / 1000 / (reduced ? .8 : 2.6));
+    if (S.i0 !== null) S.reveal = Math.min(1, (now - S.i0) / 1000 / REVEAL_S);
     S.introPull = reduced ? 0 : 1 - K.eo(K.ramp(S.reveal, 0, .9));
 
     /* pointer + drag */
@@ -440,6 +521,8 @@
     crewA = CREW_I < 0 ? 0 : (T.i === CREW_I ? 1 - K.ramp(T.f, 0, .4) : (T.i === CREW_I - 1 ? K.ramp(T.f, .55, 1) : 0));
 
     aimCamera(T);
+    /* the studio light drifts as you scroll, so the reflections slide across the lacquer like a turning product */
+    if (scene.environmentRotation) scene.environmentRotation.y = (reduced ? 0 : S.t * .03) - S.sp * .32 + (1 - S.reveal) * .8;
 
     /* which scenes draw, and how far along each is */
     for (let k = 0; k < N; k++) {
@@ -461,9 +544,9 @@
 
   /* ------------------------------------------------------------- hand-off */
   window.__elora = {
-    S, R, THREE, camera, scene, renderer, home, TOTAL, DW, MOVE, travel, P, buildMs,
+    S, R, THREE, camera, scene, renderer, home, TOTAL, DW, NB, MOVE, travel, P, buildMs,
     /* dev helpers: jump to a scene and hold there (unlock() hands scrolling back); setLevel(n) tries a quality level */
-    goto(k, dw = .55) { const kk = Math.max(0, Math.min(N - 1, k)); S.lockSp = home[kk] + DW[kk] * dw; scrollTo(0, S.lockSp * VH); S.sp = S.target = S.lockSp; },
+    goto(k, dw) { const kk = Math.max(0, Math.min(N - 1, k)); S.lockSp = home[kk] + DW[kk] * (dw ?? landing(kk)); scrollTo(0, S.lockSp * VH); S.sp = S.sp1 = S.target = S.lockSp; },
     unlock() { S.lockSp = undefined; },
     setLevel(n, r = 1) { cool = 99999; applyLevel(n, r); },
     state() { const T = travel(S.sp); return { sp: +S.sp.toFixed(3), i: T.i, dw: +T.dw.toFixed(3), f: +T.f.toFixed(3), level: lv, res: +res.toFixed(2), dpr: +DPR.toFixed(2), ema: +ema.toFixed(1), vw: VW, vh: VH, calls: renderer.info.render.calls, tris: renderer.info.render.triangles }; }

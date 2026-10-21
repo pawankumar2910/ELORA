@@ -1,8 +1,7 @@
-/* Scene 01 — Poster Design.
+/* Part 01 — Poster Design.
    One poster, printed in three layers (paper, type, seal) that ease apart in depth
    as you scroll and settle back together. */
-ELORA.add({
-  id: 'poster',
+ELORA.part('poster', {
   cam: { fitW: 4.2, p: [.3, 2.2, 12.8], t: [0, 1.95, 0], fov: 28, lens: [.2, .04, 0, .2], dolly: 1.4, drift: .5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);

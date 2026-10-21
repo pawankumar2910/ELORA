@@ -1,9 +1,8 @@
-/* Scene 06 — CRM.
+/* Part 06 — CRM.
    A glass funnel and a small flock of leads working their way down it, thinning
    out stage by stage. Labels sit quietly to one side. */
-ELORA.add({
-  id: 'crm',
-  cam: { fitW: 5.6, p: [-.2, 2.5, 13.4], t: [.3, 2.3, 0], fov: 28, lens: [-.2, .04, 0, .2], dolly: 1.4, drift: -.5 },
+ELORA.part('crm', {
+  cam: { fitW: 5.6, p: [-.2, 2.5, 13.4], t: [.3, 2.3, 0], fov: 28, lens: [-.25, .04, 0, .2], dolly: 1.4, drift: -.5 },
   build({ THREE, K }) {
     const g = new THREE.Group(), rig = new THREE.Group(); g.add(rig);
     const FLOOR = .06, YT = 4.3, YB = .55, RT = 1.7, RB = .3;
